@@ -1,0 +1,17 @@
+{
+  "name": "magnum-estate-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GA4 dashboard with a lightweight API proxy.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo 'No build step needed'"
+  },
+  "dependencies": {
+    "@google-analytics/data": "^4.8.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-basic-auth": "^1.2.1"
+  }
+}

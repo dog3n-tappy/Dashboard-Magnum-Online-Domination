@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Magnum Estate — Дашборд трафика</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">M</div>
+        <div>
+          <div class="title" data-i18n="brandTitle">Magnum Estate</div>
+          <div class="subtitle" data-i18n="brandSubtitle">
+            Трафик и эффективность сайта
+          </div>
+        </div>
+      </div>
+      <div class="filters">
+        <label class="filter">
+          <span data-i18n="periodLabel">Период</span>
+          <select id="rangeSelect">
+            <option value="30" data-i18n="period30">Последние 30 дней</option>
+            <option value="90" data-i18n="period90" selected>
+              Последние 90 дней
+            </option>
+            <option value="365" data-i18n="period365">Последние 12 месяцев</option>
+          </select>
+        </label>
+        <label class="filter">
+          <span data-i18n="channelLabel">Канал</span>
+          <select id="channelSelect">
+            <option value="all" data-i18n="channelAll">Все каналы</option>
+            <option value="organic" data-i18n="channelOrganic">Organic</option>
+            <option value="paid" data-i18n="channelPaid">Paid</option>
+            <option value="social" data-i18n="channelSocial">Social</option>
+            <option value="direct" data-i18n="channelDirect">Direct</option>
+            <option value="referral" data-i18n="channelReferral">Referral</option>
+          </select>
+        </label>
+        <label class="filter">
+          <span data-i18n="languageLabel">Язык</span>
+          <select id="languageSelect">
+            <option value="ru">Русский</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <button id="refreshBtn" class="primary" data-i18n="refreshBtn">
+          Обновить
+        </button>
+      </div>
+    </header>
+
+    <main class="container">
+      <div id="dataStatus" class="data-status" role="status">
+        <span data-i18n="dataStatusLabel">Источник данных:</span>
+        <span id="dataStatusValue">—</span>
+      </div>
+      <nav class="page-tabs">
+        <button
+          class="tab-button active"
+          data-page="overview"
+          data-i18n="tabOverview"
+        >
+          CEO Overview
+        </button>
+        <button class="tab-button" data-page="marketing" data-i18n="tabMarketing">
+          Marketing
+        </button>
+        <button class="tab-button" data-page="content" data-i18n="tabContent">
+          Content
+        </button>
+      </nav>
+
+      <section class="page-section active" data-page="overview">
+        <section class="kpi-grid">
+          <div class="kpi">
+            <div class="kpi-label" data-i18n="kpiUsersLabel">
+              Уникальные пользователи
+            </div>
+            <div class="kpi-value" id="kpiUsers">—</div>
+            <div class="kpi-note" data-i18n="kpiUsersNote">
+              Цель: 60 000 / мес
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label" data-i18n="kpiSessionsLabel">Сессии</div>
+            <div class="kpi-value" id="kpiSessions">—</div>
+            <div class="kpi-note">
+              <span data-i18n="kpiSessionsNote">Отношение:</span>
+              <span id="kpiSessionsPerUser">—</span>
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label" data-i18n="kpiNewUsersLabel">
+              Новые пользователи
+            </div>
+            <div class="kpi-value" id="kpiNewUsers">—</div>
+            <div class="kpi-note">
+              <span data-i18n="kpiNewUsersNote">Доля:</span>
+              <span id="kpiNewUsersShare">—</span>
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label" data-i18n="kpiEngagedLabel">
+              Вовлеченные сессии
+            </div>
+            <div class="kpi-value" id="kpiEngaged">—</div>
+            <div class="kpi-note">
+              <span data-i18n="kpiEngagedNote">Engagement rate:</span>
+              <span id="kpiEngRate">—</span>
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label" data-i18n="kpiAvgTimeLabel">
+              Среднее время
+            </div>
+            <div class="kpi-value" id="kpiAvgTime">—</div>
+            <div class="kpi-note" data-i18n="kpiAvgTimeNote">
+              на пользователя
+            </div>
+          </div>
+          <div class="kpi goal">
+            <div class="kpi-label" data-i18n="kpiGoalLabel">
+              Прогресс к цели
+            </div>
+            <div class="kpi-value" id="kpiGoalProgress">—</div>
+            <div class="kpi-bar">
+              <div class="kpi-bar-fill" id="kpiGoalBar"></div>
+            </div>
+            <div class="kpi-note" id="kpiGoalForecast">—</div>
+          </div>
+        </section>
+
+        <section class="grid">
+          <div class="card span-8">
+            <div class="card-title" data-i18n="usersTrendTitle">
+              Динамика пользователей
+            </div>
+            <canvas id="usersChart" height="140"></canvas>
+          </div>
+          <div class="card span-4">
+            <div class="card-title" data-i18n="goalGaugeTitle">
+              Прогресс к цели
+            </div>
+            <canvas id="goalGaugeChart" height="180"></canvas>
+          </div>
+          <div class="card span-12">
+            <div class="card-title" data-i18n="channelsTableTitle">
+              Каналы
+            </div>
+            <div id="channelsTable" class="table table-4"></div>
+          </div>
+        </section>
+      </section>
+
+      <section class="page-section" data-page="marketing">
+        <section class="grid">
+          <div class="card span-6">
+            <div class="card-title" data-i18n="topSourcesTitle">
+              Топ источники
+            </div>
+            <div id="sourcesTable" class="table table-4"></div>
+          </div>
+          <div class="card span-6">
+            <div class="card-title" data-i18n="channelsShareTitle">
+              Доля каналов
+            </div>
+            <canvas id="channelsChart" height="180"></canvas>
+          </div>
+          <div class="card span-12">
+            <div class="card-title" data-i18n="channelsTrendTitle">
+              Динамика по каналам
+            </div>
+            <canvas id="channelsTrendChart" height="170"></canvas>
+          </div>
+        </section>
+      </section>
+
+      <section class="page-section" data-page="content">
+        <section class="grid">
+          <div class="card span-12">
+            <div class="card-title" data-i18n="topPagesTitle">
+              Топ страницы
+            </div>
+            <div id="pagesTable" class="table table-4"></div>
+          </div>
+          <div class="card span-12">
+            <div class="card-title" data-i18n="problemPagesTitle">
+              Проблемные страницы
+            </div>
+            <div id="problemPagesTable" class="table table-2"></div>
+          </div>
+        </section>
+
+        <section class="grid">
+          <div class="card span-12">
+            <div class="insight-box">
+            <div class="insight-title" data-i18n="insightTitle">
+              Выявленные закономерности и инсайты
+            </div>
+            <p class="muted" id="insightSummary">—</p>
+            <div class="insight-title" data-i18n="insightActionsTitle">
+              Стратегические рекомендации
+            </div>
+            <ol class="insight-list" id="insightActions">
+              <li>—</li>
+              <li>—</li>
+              <li>—</li>
+            </ol>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
