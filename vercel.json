@@ -1,12 +1,9 @@
 {
+  "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/ga4"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/$1"
+      "source": "/api/ga4",
+      "destination": "/api/ga4.js"
     }
   ]
 }
