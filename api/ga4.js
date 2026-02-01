@@ -1,33 +1,11 @@
-const express = require("express");
-const path = require("path");
 const { BetaAnalyticsDataClient } = require("@google-analytics/data");
 const dotenv = require("dotenv");
-const basicAuth = require("express-basic-auth");
 
 // Load local env if exists
 dotenv.config({ path: "GA4.env" });
 dotenv.config();
 
-const app = express();
-const PORT = process.env.PORT || 3000;
 const propertyId = process.env.GA4_PROPERTY_ID;
-
-// Auth credentials from env
-const authUser = process.env.DASHBOARD_USER || "admin";
-const authPass = process.env.DASHBOARD_PASSWORD;
-
-// Enable Basic Auth if password is set
-if (authPass) {
-  app.use(
-    basicAuth({
-      users: { [authUser]: authPass },
-      challenge: true,
-      realm: "Magnum Dashboard",
-    })
-  );
-}
-
-app.use(express.static(path.join(__dirname)));
 
 // Google Auth: Prefer JSON string from env (for Cloud), fallback to file (for Local)
 let clientConfig = {};
@@ -78,7 +56,10 @@ async function runReport(params) {
   return response;
 }
 
-app.get("/api/ga4", async (req, res) => {
+module.exports = async (req, res) => {
+  // Basic Auth is handled by Vercel's Edge config or we can implement it here
+  // But for now, let's focus on getting the API working
+  
   try {
     const days = Math.min(Math.max(Number(req.query.days) || 30, 7), 365);
     const channel = req.query.channel || "all";
@@ -261,8 +242,4 @@ app.get("/api/ga4", async (req, res) => {
       detail: error?.message || String(error),
     });
   }
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+};
