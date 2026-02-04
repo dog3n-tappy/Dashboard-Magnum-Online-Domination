@@ -7,18 +7,15 @@
     <link rel="stylesheet" href="styles.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet" />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   </head>
   <body>
     <header class="topbar">
       <div class="brand">
-        <div class="logo">M</div>
-        <div>
-          <div class="title" data-i18n="brandTitle">Magnum Estate</div>
-          <div class="subtitle" data-i18n="brandSubtitle">
-            Трафик и эффективность сайта
-          </div>
+        <img src="magnum-estate-logo.png" alt="Magnum Estate" class="brand-logo" width="180" height="48" />
+        <div class="brand-subtitle-wrap">
+          <span class="subtitle" data-i18n="brandSubtitle">Трафик и эффективность сайта</span>
         </div>
       </div>
       <div class="filters">
@@ -142,23 +139,23 @@
         </section>
 
         <section class="grid">
-          <div class="card span-8" data-stagger="1">
+          <div class="card span-12" data-stagger="1">
             <div class="card-title" data-i18n="usersTrendTitle">
               Динамика пользователей
             </div>
             <canvas id="usersChart" height="140" aria-label="График динамики пользователей"></canvas>
           </div>
-          <div class="card span-4" data-stagger="2">
-            <div class="card-title" data-i18n="goalGaugeTitle">
-              Прогресс к цели
-            </div>
-            <canvas id="goalGaugeChart" height="180" aria-label="Круговой индикатор прогресса к цели"></canvas>
-          </div>
-          <div class="card span-12" data-stagger="3">
+          <div class="card span-12" data-stagger="2">
             <div class="card-title" data-i18n="channelsTableTitle">
               Каналы
             </div>
-            <div id="channelsTable" class="table table-4"></div>
+            <div id="channelsTable" class="table table-5"></div>
+          </div>
+          <div class="card span-12" data-stagger="3">
+            <div class="card-title" data-i18n="socialSourcesTitle">
+              Organic Social по платформам
+            </div>
+            <div id="socialSourcesTable" class="table table-5"></div>
           </div>
         </section>
       </section>

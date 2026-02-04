@@ -40,6 +40,7 @@
 
   /* Typography */
   --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-table: "DM Sans", "Inter", system-ui, sans-serif;
   --text-xs: 0.75rem;
   --text-sm: 0.8125rem;
   --text-base: 0.9375rem;
@@ -105,27 +106,30 @@ body {
 .brand {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-4);
+  flex-wrap: wrap;
 }
 
-.logo {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-md);
-  background: var(--logo-bg);
-  color: var(--logo-text);
-  font-weight: var(--font-bold);
-  font-size: var(--text-xl);
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+.brand-logo {
+  height: 40px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  object-position: left center;
+  /* Делаем тёмный логотип светлым на тёмном фоне хедера */
+  filter: brightness(0) invert(1);
+  opacity: 0.95;
 }
 
-.title {
-  font-size: var(--text-lg);
-  font-weight: var(--font-bold);
-  letter-spacing: -0.02em;
+.brand-subtitle-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.brand .subtitle {
+  font-size: var(--text-xs);
+  color: var(--header-text-muted);
+  margin: 0;
 }
 
 .subtitle {
@@ -523,6 +527,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  font-family: var(--font-table);
 }
 
 .table-row {
@@ -567,8 +572,24 @@ body {
   letter-spacing: 0.04em;
 }
 
+.table-row.header div {
+  text-align: center;
+}
+
+.table-row:not(.header) div:first-child {
+  text-align: left;
+}
+
+.table-row:not(.header) div:not(:first-child) {
+  text-align: center;
+}
+
 .table-4 .table-row {
   grid-template-columns: 2fr 1fr 1fr 1fr;
+}
+
+.table-5 .table-row {
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
 }
 
 .table-2 .table-row {
@@ -826,6 +847,10 @@ code {
     grid-template-columns: 1.6fr 1fr 1fr 1fr;
   }
 
+  .table-5 .table-row {
+    grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr;
+  }
+
   .table-2 .table-row {
     grid-template-columns: 2.2fr 1fr;
   }
@@ -854,5 +879,9 @@ code {
 
   .table-4 .table-row {
     grid-template-columns: 1.4fr 0.9fr 0.9fr 0.9fr;
+  }
+
+  .table-5 .table-row {
+    grid-template-columns: 1.2fr 0.8fr 0.8fr 0.8fr 0.8fr;
   }
 }

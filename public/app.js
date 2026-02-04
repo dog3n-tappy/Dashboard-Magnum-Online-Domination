@@ -4,6 +4,7 @@ const channelsChartEl = document.getElementById("channelsChart");
 const channelsTrendChartEl = document.getElementById("channelsTrendChart");
 const goalGaugeChartEl = document.getElementById("goalGaugeChart");
 const channelsTable = document.getElementById("channelsTable");
+const socialSourcesTable = document.getElementById("socialSourcesTable");
 const sourcesTable = document.getElementById("sourcesTable");
 const pagesTable = document.getElementById("pagesTable");
 const problemPagesTable = document.getElementById("problemPagesTable");
@@ -73,6 +74,9 @@ const translations = {
     channelsShareTitle: "Доля каналов",
     channelsTrendTitle: "Динамика по каналам",
     channelsTableTitle: "Каналы",
+    socialSourcesTitle: "Organic Social по платформам",
+    platformHeader: "Платформа",
+    shareOfSocialHeader: "Доля в соцсетях",
     goalGaugeTitle: "Прогресс к цели",
     topSourcesTitle: "Топ источники",
     topPagesTitle: "Топ страницы",
@@ -96,13 +100,13 @@ const translations = {
     dayLabel: "День",
     sourcesHeader: "Источник / Канал",
     pagesHeader: "Страница",
-    usersHeader: "Пользователи",
+    usersHeader: "Всего пользователей",
     engagementHeader: "Вовлеченность",
     engagedHeader: "Вовлеченные",
-    newUsersHeader: "Новые",
+    newUsersHeader: "Новые пользователи",
     avgEngagementHeader: "Среднее время вовлеченности",
     engagementRateHeader: "Коэффициент вовлеченности",
-    shareHeader: "Доля",
+    shareHeader: "Доля трафика",
     channelHeader: "Канал",
     remainingLabel: "Осталось",
     forecastLabel: "Прогноз",
@@ -145,6 +149,9 @@ const translations = {
     channelsShareTitle: "Channel share",
     channelsTrendTitle: "Channel trend",
     channelsTableTitle: "Channels",
+    socialSourcesTitle: "Organic Social by platform",
+    platformHeader: "Platform",
+    shareOfSocialHeader: "Share of social",
     goalGaugeTitle: "Goal progress",
     topSourcesTitle: "Top sources",
     topPagesTitle: "Top pages",
@@ -166,13 +173,13 @@ const translations = {
     dayLabel: "Day",
     sourcesHeader: "Source / Medium",
     pagesHeader: "Page path",
-    usersHeader: "Users",
+    usersHeader: "Total users",
     engagementHeader: "Engagement",
     engagedHeader: "Engaged",
-    newUsersHeader: "New",
+    newUsersHeader: "New users",
     avgEngagementHeader: "Avg engagement",
     engagementRateHeader: "Engagement rate",
-    shareHeader: "Share",
+    shareHeader: "Share of traffic",
     channelHeader: "Channel",
     remainingLabel: "Remaining",
     forecastLabel: "Forecast",
@@ -456,6 +463,15 @@ function generateMockData(days, channel) {
     })),
   };
 
+  const socialTotal = totalUsers * 0.14;
+  const socialSources = [
+    ["Instagram", socialTotal * 0.38, socialTotal * 0.16, 0.38, 0.42],
+    ["VK", socialTotal * 0.28, socialTotal * 0.12, 0.28, 0.45],
+    ["Facebook", socialTotal * 0.18, socialTotal * 0.08, 0.18, 0.39],
+    ["YouTube", socialTotal * 0.1, socialTotal * 0.05, 0.1, 0.47],
+    ["Telegram", socialTotal * 0.06, socialTotal * 0.03, 0.06, 0.41],
+  ];
+
   const sources = [
     ["google / organic", totalUsers * 0.38, totalUsers * 0.16, 0.57],
     ["yandex / organic", totalUsers * 0.21, totalUsers * 0.11, 0.51],
@@ -483,6 +499,7 @@ function generateMockData(days, channel) {
     avgTime,
     channels: channelsWithMetrics,
     channelsTrend,
+    socialSources,
     sources,
     pages,
   };
@@ -613,47 +630,49 @@ function renderCharts(data) {
     },
   });
 
-  if (goalGaugeChart) goalGaugeChart.destroy();
-  const progress = data.totalUsers / GOAL_USERS;
-  goalGaugeChart = new Chart(goalGaugeChartEl, {
-    type: "doughnut",
-    data: {
-      labels: [t("kpiGoalLabel"), t("remainingLabel")],
-      datasets: [
-        {
-          data: [Math.min(progress, 1), Math.max(1 - progress, 0)],
-          backgroundColor: ["#2563eb", "#e2e7ee"],
-          borderWidth: 0,
-        },
-      ],
-    },
-    options: {
-      cutout: "75%",
-      plugins: {
-        legend: { display: false },
-        tooltip: { enabled: false },
+  if (goalGaugeChartEl) {
+    if (goalGaugeChart) goalGaugeChart.destroy();
+    const progress = data.totalUsers / GOAL_USERS;
+    goalGaugeChart = new Chart(goalGaugeChartEl, {
+      type: "doughnut",
+      data: {
+        labels: [t("kpiGoalLabel"), t("remainingLabel")],
+        datasets: [
+          {
+            data: [Math.min(progress, 1), Math.max(1 - progress, 0)],
+            backgroundColor: ["#2563eb", "#e2e7ee"],
+            borderWidth: 0,
+          },
+        ],
       },
-      animation: {
-        duration: 400,
-        onComplete: function(animation) {
-          const chart = animation.chart;
-          const ctx = chart.ctx;
-          const width = chart.width;
-          const height = chart.height;
-          const fontSize = (height / 114).toFixed(2);
-          ctx.restore();
-          ctx.font = fontSize + "em sans-serif";
-          ctx.textBaseline = "middle";
-          ctx.fillStyle = "#0d1321";
-          const text = formatPercent(progress);
-          const textX = Math.round((width - ctx.measureText(text).width) / 2);
-          const textY = height / 2;
-          ctx.fillText(text, textX, textY);
-          ctx.save();
+      options: {
+        cutout: "75%",
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: false },
+        },
+        animation: {
+          duration: 400,
+          onComplete: function(animation) {
+            const chart = animation.chart;
+            const ctx = chart.ctx;
+            const width = chart.width;
+            const height = chart.height;
+            const fontSize = (height / 114).toFixed(2);
+            ctx.restore();
+            ctx.font = fontSize + "em sans-serif";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "#0d1321";
+            const text = formatPercent(progress);
+            const textX = Math.round((width - ctx.measureText(text).width) / 2);
+            const textY = height / 2;
+            ctx.fillText(text, textX, textY);
+            ctx.save();
+          }
         }
-      }
-    },
-  });
+      },
+    });
+  }
 }
 
 function renderTables(data) {
@@ -675,6 +694,27 @@ function renderTables(data) {
     ],
     channelRows
   );
+
+  if (socialSourcesTable) {
+    const socialRows = (data.socialSources || []).map((row) => [
+      row[0],
+      formatNumber(row[1]),
+      formatNumber(row[2]),
+      formatPercent(row[3]),
+      formatPercent(row[4]),
+    ]);
+    renderTable(
+      socialSourcesTable,
+      [
+        t("platformHeader"),
+        t("usersHeader"),
+        t("newUsersHeader"),
+        t("shareOfSocialHeader"),
+        t("engagementRateHeader"),
+      ],
+      socialRows
+    );
+  }
 
   renderTable(
     sourcesTable,

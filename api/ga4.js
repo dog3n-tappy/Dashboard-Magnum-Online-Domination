@@ -163,6 +163,44 @@ module.exports = async (req, res) => {
       })),
     };
 
+    const socialSourcesReport = await runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [dateRange],
+      dimensions: [{ name: "sessionSource" }],
+      dimensionFilter: {
+        filter: {
+          fieldName: "sessionDefaultChannelGroup",
+          stringFilter: { value: "Organic Social", matchType: "EXACT" },
+        },
+      },
+      metrics: [
+        { name: "activeUsers" },
+        { name: "newUsers" },
+        { name: "engagementRate" },
+      ],
+      orderBys: [{ metric: { metricName: "activeUsers" }, desc: true }],
+      limit: 10,
+    });
+
+    const socialSourcesTotal = (socialSourcesReport.rows || []).reduce(
+      (sum, row) => sum + toNumber(row.metricValues?.[0]?.value),
+      0
+    );
+
+    const socialSources = (socialSourcesReport.rows || []).map((row) => {
+      const users = toNumber(row.metricValues?.[0]?.value);
+      const newUsersVal = toNumber(row.metricValues?.[1]?.value);
+      const engagementRate = toNumber(row.metricValues?.[2]?.value);
+      const share = socialSourcesTotal ? users / socialSourcesTotal : 0;
+      return [
+        row.dimensionValues?.[0]?.value || "(other)",
+        users,
+        newUsersVal,
+        share,
+        engagementRate,
+      ];
+    });
+
     const sourcesReport = await runReport({
       property: `properties/${propertyId}`,
       dateRanges: [dateRange],
@@ -232,6 +270,7 @@ module.exports = async (req, res) => {
       avgTime,
       channels,
       channelsTrend,
+      socialSources,
       sources,
       pages,
     });
