@@ -51,6 +51,27 @@ function buildChannelFilter(channel) {
   };
 }
 
+function buildSocialSourcesFromSources(sources) {
+  const socialRows = (sources || []).filter((row) => {
+    const label = (row[0] || "").toLowerCase();
+    return label.includes("/ social") || label.endsWith(" social") || label === "social";
+  });
+  if (socialRows.length === 0) return [];
+
+  const total = socialRows.reduce((sum, row) => sum + toNumber(row[1]), 0);
+  return socialRows.map((row) => {
+    const label = (row[0] || "").trim();
+    const sourceName = label.split("/")[0].trim();
+    const platformName = sourceName
+      ? sourceName.charAt(0).toUpperCase() + sourceName.slice(1).toLowerCase()
+      : row[0];
+    const users = toNumber(row[1]);
+    const engagementRate = toNumber(row[3]);
+    const share = total ? users / total : 0;
+    return [platformName, users, 0, share, engagementRate];
+  });
+}
+
 async function runReport(params) {
   const [response] = await client.runReport(params);
   return response;
@@ -163,44 +184,6 @@ module.exports = async (req, res) => {
       })),
     };
 
-    const socialSourcesReport = await runReport({
-      property: `properties/${propertyId}`,
-      dateRanges: [dateRange],
-      dimensions: [{ name: "sessionSource" }],
-      dimensionFilter: {
-        filter: {
-          fieldName: "sessionDefaultChannelGroup",
-          stringFilter: { value: "Organic Social", matchType: "EXACT" },
-        },
-      },
-      metrics: [
-        { name: "activeUsers" },
-        { name: "newUsers" },
-        { name: "engagementRate" },
-      ],
-      orderBys: [{ metric: { metricName: "activeUsers" }, desc: true }],
-      limit: 10,
-    });
-
-    const socialSourcesTotal = (socialSourcesReport.rows || []).reduce(
-      (sum, row) => sum + toNumber(row.metricValues?.[0]?.value),
-      0
-    );
-
-    const socialSources = (socialSourcesReport.rows || []).map((row) => {
-      const users = toNumber(row.metricValues?.[0]?.value);
-      const newUsersVal = toNumber(row.metricValues?.[1]?.value);
-      const engagementRate = toNumber(row.metricValues?.[2]?.value);
-      const share = socialSourcesTotal ? users / socialSourcesTotal : 0;
-      return [
-        row.dimensionValues?.[0]?.value || "(other)",
-        users,
-        newUsersVal,
-        share,
-        engagementRate,
-      ];
-    });
-
     const sourcesReport = await runReport({
       property: `properties/${propertyId}`,
       dateRanges: [dateRange],
@@ -209,12 +192,12 @@ module.exports = async (req, res) => {
         { name: "sessionMedium" },
       ],
       metrics: [
-        { name: "activeUsers" },
+        { name: "sessions" },
         { name: "engagedSessions" },
         { name: "engagementRate" },
       ],
-      orderBys: [{ metric: { metricName: "activeUsers" }, desc: true }],
-      limit: 5,
+      orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+      limit: 25,
       ...(dimensionFilter ? { dimensionFilter } : {}),
     });
 
@@ -226,6 +209,38 @@ module.exports = async (req, res) => {
         toNumber(row.metricValues?.[0]?.value),
         toNumber(row.metricValues?.[1]?.value),
         toNumber(row.metricValues?.[2]?.value),
+      ];
+    });
+
+    const socialSources = buildSocialSourcesFromSources(sources);
+
+    const sourceOnlyReport = await runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [dateRange],
+      dimensions: [{ name: "sessionSource" }],
+      metrics: [
+        { name: "sessions" },
+        { name: "engagedSessions" },
+        { name: "engagementRate" },
+        { name: "userEngagementDuration" },
+      ],
+      orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+      limit: 10,
+      ...(dimensionFilter ? { dimensionFilter } : {}),
+    });
+
+    const trafficBySource = (sourceOnlyReport.rows || []).map((row) => {
+      const sessionsCount = toNumber(row.metricValues?.[0]?.value);
+      const engagedSessionsCount = toNumber(row.metricValues?.[1]?.value);
+      const engagementRateVal = toNumber(row.metricValues?.[2]?.value);
+      const totalDurationSec = toNumber(row.metricValues?.[3]?.value);
+      const avgTimePerSessionSec = sessionsCount ? totalDurationSec / sessionsCount : 0;
+      return [
+        row.dimensionValues?.[0]?.value || "(not set)",
+        sessionsCount,
+        engagedSessionsCount,
+        engagementRateVal,
+        avgTimePerSessionSec,
       ];
     });
 
@@ -272,6 +287,7 @@ module.exports = async (req, res) => {
       channelsTrend,
       socialSources,
       sources,
+      trafficBySource,
       pages,
     });
   } catch (error) {

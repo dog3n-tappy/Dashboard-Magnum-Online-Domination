@@ -74,7 +74,9 @@ const translations = {
     channelsShareTitle: "Доля каналов",
     channelsTrendTitle: "Динамика по каналам",
     channelsTableTitle: "Каналы",
-    socialSourcesTitle: "Organic Social по платформам",
+    trafficAcquisitionTitle: "Источники трафика",
+    sessionSourceHeader: "Источник",
+    sessionsHeader: "Сессии",
     platformHeader: "Платформа",
     shareOfSocialHeader: "Доля в соцсетях",
     goalGaugeTitle: "Прогресс к цели",
@@ -149,7 +151,9 @@ const translations = {
     channelsShareTitle: "Channel share",
     channelsTrendTitle: "Channel trend",
     channelsTableTitle: "Channels",
-    socialSourcesTitle: "Organic Social by platform",
+    trafficAcquisitionTitle: "Traffic acquisition",
+    sessionSourceHeader: "Session source",
+    sessionsHeader: "Sessions",
     platformHeader: "Platform",
     shareOfSocialHeader: "Share of social",
     goalGaugeTitle: "Goal progress",
@@ -229,6 +233,15 @@ const formatPercent = (value) => {
   if (safeValue === null) return "—";
   return `${Math.round(safeValue * 100)}%`;
 };
+
+function formatDuration(seconds) {
+  const sec = Number(seconds);
+  if (!Number.isFinite(sec) || sec < 0) return "—";
+  if (sec < 60) return `${Math.round(sec)}s`;
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  return s ? `${m}m ${s}s` : `${m}m`;
+}
 
 function t(key) {
   return translations[currentLanguage]?.[key] || translations.ru[key] || key;
@@ -463,14 +476,7 @@ function generateMockData(days, channel) {
     })),
   };
 
-  const socialTotal = totalUsers * 0.14;
-  const socialSources = [
-    ["Instagram", socialTotal * 0.38, socialTotal * 0.16, 0.38, 0.42],
-    ["VK", socialTotal * 0.28, socialTotal * 0.12, 0.28, 0.45],
-    ["Facebook", socialTotal * 0.18, socialTotal * 0.08, 0.18, 0.39],
-    ["YouTube", socialTotal * 0.1, socialTotal * 0.05, 0.1, 0.47],
-    ["Telegram", socialTotal * 0.06, socialTotal * 0.03, 0.06, 0.41],
-  ];
+  const socialSources = [];
 
   const sources = [
     ["google / organic", totalUsers * 0.38, totalUsers * 0.16, 0.57],
@@ -478,6 +484,19 @@ function generateMockData(days, channel) {
     ["google / cpc", totalUsers * 0.18, totalUsers * 0.07, 0.46],
     ["instagram / social", totalUsers * 0.1, totalUsers * 0.05, 0.42],
     ["direct / none", totalUsers * 0.07, totalUsers * 0.03, 0.49],
+  ];
+
+  const trafficBySource = [
+    ["(direct)", 1058, 321, 0.3034, 17],
+    ["google", 498, 327, 0.6566, 73],
+    ["newsletter", 97, 7, 0.0722, 4],
+    ["google_maps", 92, 53, 0.5761, 49],
+    ["m.facebook.com", 69, 6, 0.087, 4],
+    ["linkedin.com", 67, 36, 0.5373, 35],
+    ["ig", 64, 39, 0.6094, 34],
+    ["facebook.com", 46, 18, 0.3913, 2],
+    ["chatgpt.com", 43, 19, 0.4419, 58],
+    ["yandex.ru", 29, 14, 0.4828, 45],
   ];
 
   const pages = [
@@ -501,6 +520,7 @@ function generateMockData(days, channel) {
     channelsTrend,
     socialSources,
     sources,
+    trafficBySource,
     pages,
   };
 }
@@ -675,6 +695,14 @@ function renderCharts(data) {
   }
 }
 
+/** Используются только реальные данные GA4 (sources с medium = social). Без демо-подстановки. */
+function getSocialSourcesForDisplay(data) {
+  if (Array.isArray(data.socialSources) && data.socialSources.length > 0) {
+    return data.socialSources;
+  }
+  return [];
+}
+
 function renderTables(data) {
   const channelRows = (data.channels || []).map((c) => [
     localizeChannelLabel(c.label),
@@ -696,23 +724,24 @@ function renderTables(data) {
   );
 
   if (socialSourcesTable) {
-    const socialRows = (data.socialSources || []).map((row) => [
+    const src = data.trafficBySource || [];
+    const trafficRows = src.map((row) => [
       row[0],
       formatNumber(row[1]),
       formatNumber(row[2]),
       formatPercent(row[3]),
-      formatPercent(row[4]),
+      formatDuration(row[4]),
     ]);
     renderTable(
       socialSourcesTable,
       [
-        t("platformHeader"),
-        t("usersHeader"),
-        t("newUsersHeader"),
-        t("shareOfSocialHeader"),
+        t("sessionSourceHeader"),
+        t("sessionsHeader"),
+        t("engagedHeader"),
         t("engagementRateHeader"),
+        t("avgEngagementHeader"),
       ],
-      socialRows
+      trafficRows
     );
   }
 
