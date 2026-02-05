@@ -6,10 +6,6 @@
       "destination": "/api/ga4.js"
     },
     {
-      "source": "/api/insights",
-      "destination": "/api/insights.js"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
