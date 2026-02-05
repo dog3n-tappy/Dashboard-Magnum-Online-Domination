@@ -4,7 +4,6 @@ const channelsChartEl = document.getElementById("channelsChart");
 const channelsTrendChartEl = document.getElementById("channelsTrendChart");
 const goalGaugeChartEl = document.getElementById("goalGaugeChart");
 const channelsTable = document.getElementById("channelsTable");
-const socialSourcesTable = document.getElementById("socialSourcesTable");
 const sourcesTable = document.getElementById("sourcesTable");
 const pagesTable = document.getElementById("pagesTable");
 const problemPagesTable = document.getElementById("problemPagesTable");
@@ -20,23 +19,73 @@ const kpiAvgTime = document.getElementById("kpiAvgTime");
 const kpiGoalProgress = document.getElementById("kpiGoalProgress");
 const kpiGoalBar = document.getElementById("kpiGoalBar");
 const kpiGoalForecast = document.getElementById("kpiGoalForecast");
-const dashboardContent = document.getElementById("dashboardContent");
 const insightSummary = document.getElementById("insightSummary");
 const insightActions = document.getElementById("insightActions");
-const insightAiBadge = document.getElementById("insightAiBadge");
 const dataStatus = document.getElementById("dataStatus");
 const dataStatusValue = document.getElementById("dataStatusValue");
 
 
+const propertySelect = document.getElementById("propertySelect");
 const rangeSelect = document.getElementById("rangeSelect");
+const dateFromLabel = document.getElementById("dateFromLabel");
+const dateToLabel = document.getElementById("dateToLabel");
+const dateFrom = document.getElementById("dateFrom");
+const dateTo = document.getElementById("dateTo");
 const channelSelect = document.getElementById("channelSelect");
 const refreshBtn = document.getElementById("refreshBtn");
 const languageSelect = document.getElementById("languageSelect");
+const themeToggle = document.getElementById("themeToggle");
 
 let usersChart;
 let channelsChart;
 let channelsTrendChart;
 let goalGaugeChart;
+
+// Theme management
+function initTheme() {
+  const savedTheme = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const theme = savedTheme || (prefersDark ? "dark" : "light");
+  
+  setTheme(theme);
+}
+
+function setTheme(theme) {
+  const isDark = theme === "dark";
+  if (isDark) {
+    document.body.classList.add("dark-theme");
+    themeToggle.textContent = "☀️";
+  } else {
+    document.body.classList.remove("dark-theme");
+    themeToggle.textContent = "🌙";
+  }
+  localStorage.setItem("theme", theme);
+}
+
+function toggleTheme() {
+  const isDark = document.body.classList.contains("dark-theme");
+  setTheme(isDark ? "light" : "dark");
+  // Redraw charts with new colors
+  if (usersChart) usersChart.destroy();
+  if (channelsChart) channelsChart.destroy();
+  if (channelsTrendChart) channelsTrendChart.destroy();
+  if (goalGaugeChart) goalGaugeChart.destroy();
+  usersChart = null;
+  channelsChart = null;
+  channelsTrendChart = null;
+  goalGaugeChart = null;
+  renderCharts(lastData);
+}
+
+function getChartColors() {
+  const isDark = document.body.classList.contains("dark-theme");
+  return {
+    textColor: isDark ? "#e5eaf1" : "#0f1a2a",
+    gridColor: isDark ? "#2d3d4f" : "#eef2f8",
+    primaryColor: isDark ? "#60a5fa" : "#2251ff",
+    primaryAlpha: isDark ? "rgba(96, 165, 250, 0.2)" : "rgba(34, 81, 255, 0.1)",
+  };
+}
 
 const translations = {
   ru: {
@@ -46,9 +95,14 @@ const translations = {
     tabMarketing: "Marketing",
     tabContent: "Content",
     periodLabel: "Период",
-    period30: "Последние 30 дней",
+    period7: "Последние 7 дней",
+    period28: "Последние 28 дней",
+    period31: "Последние 31 день",
     period90: "Последние 90 дней",
+    periodQuarter: "Последние 3 месяца",
+    periodHalf: "Последние 6 месяцев",
     period365: "Последние 12 месяцев",
+    periodCustom: "Выбрать даты",
     channelLabel: "Канал",
     channelAll: "Все каналы",
     channelOrganic: "Органика",
@@ -74,11 +128,6 @@ const translations = {
     channelsShareTitle: "Доля каналов",
     channelsTrendTitle: "Динамика по каналам",
     channelsTableTitle: "Каналы",
-    trafficAcquisitionTitle: "Источники трафика",
-    sessionSourceHeader: "Источник",
-    sessionsHeader: "Сессии",
-    platformHeader: "Платформа",
-    shareOfSocialHeader: "Доля в соцсетях",
     goalGaugeTitle: "Прогресс к цели",
     topSourcesTitle: "Топ источники",
     topPagesTitle: "Топ страницы",
@@ -102,13 +151,13 @@ const translations = {
     dayLabel: "День",
     sourcesHeader: "Источник / Канал",
     pagesHeader: "Страница",
-    usersHeader: "Всего пользователей",
+    usersHeader: "Пользователи",
     engagementHeader: "Вовлеченность",
     engagedHeader: "Вовлеченные",
-    newUsersHeader: "Новые пользователи",
+    newUsersHeader: "Новые",
     avgEngagementHeader: "Среднее время вовлеченности",
     engagementRateHeader: "Коэффициент вовлеченности",
-    shareHeader: "Доля трафика",
+    shareHeader: "Доля",
     channelHeader: "Канал",
     remainingLabel: "Осталось",
     forecastLabel: "Прогноз",
@@ -123,9 +172,14 @@ const translations = {
     tabMarketing: "Marketing",
     tabContent: "Content",
     periodLabel: "Period",
-    period30: "Last 30 days",
+    period7: "Last 7 days",
+    period28: "Last 28 days",
+    period31: "Last 31 days",
     period90: "Last 90 days",
+    periodQuarter: "Last 3 months",
+    periodHalf: "Last 6 months",
     period365: "Last 12 months",
+    periodCustom: "Custom dates",
     channelLabel: "Channel",
     channelAll: "All channels",
     channelOrganic: "Organic",
@@ -151,11 +205,6 @@ const translations = {
     channelsShareTitle: "Channel share",
     channelsTrendTitle: "Channel trend",
     channelsTableTitle: "Channels",
-    trafficAcquisitionTitle: "Traffic acquisition",
-    sessionSourceHeader: "Session source",
-    sessionsHeader: "Sessions",
-    platformHeader: "Platform",
-    shareOfSocialHeader: "Share of social",
     goalGaugeTitle: "Goal progress",
     topSourcesTitle: "Top sources",
     topPagesTitle: "Top pages",
@@ -177,13 +226,13 @@ const translations = {
     dayLabel: "Day",
     sourcesHeader: "Source / Medium",
     pagesHeader: "Page path",
-    usersHeader: "Total users",
+    usersHeader: "Users",
     engagementHeader: "Engagement",
     engagedHeader: "Engaged",
-    newUsersHeader: "New users",
+    newUsersHeader: "New",
     avgEngagementHeader: "Avg engagement",
     engagementRateHeader: "Engagement rate",
-    shareHeader: "Share of traffic",
+    shareHeader: "Share",
     channelHeader: "Channel",
     remainingLabel: "Remaining",
     forecastLabel: "Forecast",
@@ -202,46 +251,11 @@ const formatNumber = (value) => {
     currentLanguage === "ru" ? "ru-RU" : "en-US"
   ).format(Math.round(safeValue));
 };
-
-function animateNumber(el, targetValue, formatter, duration = 600) {
-  if (!el || typeof formatter !== "function") return;
-  const num = Number(targetValue);
-  if (!Number.isFinite(num)) {
-    el.textContent = "—";
-    return;
-  }
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (prefersReducedMotion || duration === 0) {
-    el.textContent = formatter(num);
-    return;
-  }
-  const start = performance.now();
-  const startValue = 0;
-  const step = (now) => {
-    const elapsed = now - start;
-    const t = Math.min(elapsed / duration, 1);
-    const eased = 1 - (1 - t) * (1 - t);
-    const current = Math.round(startValue + (num - startValue) * eased);
-    el.textContent = formatter(current);
-    if (t < 1) requestAnimationFrame(step);
-    else el.textContent = formatter(num);
-  };
-  requestAnimationFrame(step);
-}
 const formatPercent = (value) => {
   const safeValue = Number.isFinite(Number(value)) ? Number(value) : null;
   if (safeValue === null) return "—";
   return `${Math.round(safeValue * 100)}%`;
 };
-
-function formatDuration(seconds) {
-  const sec = Number(seconds);
-  if (!Number.isFinite(sec) || sec < 0) return "—";
-  if (sec < 60) return `${Math.round(sec)}s`;
-  const m = Math.floor(sec / 60);
-  const s = Math.round(sec % 60);
-  return s ? `${m}m ${s}s` : `${m}m`;
-}
 
 function t(key) {
   return translations[currentLanguage]?.[key] || translations.ru[key] || key;
@@ -348,74 +362,11 @@ function buildInsightActions(data) {
   return actions;
 }
 
-function setInsightsLoading(loading) {
+function renderInsights(data) {
   if (!insightSummary || !insightActions) return;
-  if (loading) {
-    insightSummary.textContent =
-      currentLanguage === "ru"
-        ? "Анализ текущих данных с помощью ИИ…"
-        : "Analyzing data with AI…";
-    insightActions.innerHTML = "<li aria-busy=\"true\">—</li>";
-    if (insightSummary.closest(".insight-box")) {
-      insightSummary.closest(".insight-box").classList.add("is-loading-ai");
-    }
-  } else {
-    if (insightSummary.closest(".insight-box")) {
-      insightSummary.closest(".insight-box").classList.remove("is-loading-ai");
-    }
-  }
-}
-
-function renderInsights(data, aiResult) {
-  if (!insightSummary || !insightActions) return;
-  const fromAI = aiResult && (aiResult.summary || (aiResult.recommendations && aiResult.recommendations.length));
-  if (insightAiBadge) {
-    if (fromAI) {
-      insightAiBadge.textContent = currentLanguage === "ru" ? "ИИ" : "AI";
-      insightAiBadge.setAttribute("title", currentLanguage === "ru" ? "Сгенерировано с помощью ИИ" : "Generated by AI");
-      insightAiBadge.classList.add("is-visible");
-    } else {
-      insightAiBadge.classList.remove("is-visible");
-    }
-  }
-  if (fromAI) {
-    insightSummary.textContent = aiResult.summary || "—";
-    const list = Array.isArray(aiResult.recommendations) ? aiResult.recommendations : [];
-    insightActions.innerHTML = list.map((item) => `<li>${item}</li>`).join("") || "<li>—</li>";
-    return;
-  }
   insightSummary.textContent = buildInsightSummary(data);
   const actions = buildInsightActions(data);
   insightActions.innerHTML = actions.map((item) => `<li>${item}</li>`).join("");
-}
-
-async function fetchAIInsights(data) {
-  try {
-    const res = await fetch("/api/insights", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        data: {
-          days: data.days,
-          dailyUsers: data.dailyUsers,
-          dailyDates: data.dailyDates,
-          totalUsers: data.totalUsers,
-          sessions: data.sessions,
-          newUsers: data.newUsers,
-          engagedSessions: data.engagedSessions,
-          avgTime: data.avgTime,
-          channels: data.channels,
-          sources: data.sources,
-          pages: data.pages,
-        },
-        language: currentLanguage,
-      }),
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
 }
 
 function setDataStatus(state, text) {
@@ -476,27 +427,12 @@ function generateMockData(days, channel) {
     })),
   };
 
-  const socialSources = [];
-
   const sources = [
     ["google / organic", totalUsers * 0.38, totalUsers * 0.16, 0.57],
     ["yandex / organic", totalUsers * 0.21, totalUsers * 0.11, 0.51],
     ["google / cpc", totalUsers * 0.18, totalUsers * 0.07, 0.46],
     ["instagram / social", totalUsers * 0.1, totalUsers * 0.05, 0.42],
     ["direct / none", totalUsers * 0.07, totalUsers * 0.03, 0.49],
-  ];
-
-  const trafficBySource = [
-    ["(direct)", 1058, 321, 0.3034, 17],
-    ["google", 498, 327, 0.6566, 73],
-    ["newsletter", 97, 7, 0.0722, 4],
-    ["google_maps", 92, 53, 0.5761, 49],
-    ["m.facebook.com", 69, 6, 0.087, 4],
-    ["linkedin.com", 67, 36, 0.5373, 35],
-    ["ig", 64, 39, 0.6094, 34],
-    ["facebook.com", 46, 18, 0.3913, 2],
-    ["chatgpt.com", 43, 19, 0.4419, 58],
-    ["yandex.ru", 29, 14, 0.4828, 45],
   ];
 
   const pages = [
@@ -518,34 +454,27 @@ function generateMockData(days, channel) {
     avgTime,
     channels: channelsWithMetrics,
     channelsTrend,
-    socialSources,
     sources,
-    trafficBySource,
     pages,
   };
 }
 
 function renderKpis(data) {
   const progress = data.totalUsers / GOAL_USERS;
-  const progressPct = Math.min(progress * 100, 100);
   const sessionsPerUser = data.sessions / data.totalUsers;
   const newUsersShare = data.newUsers / data.totalUsers;
   const engagementRate = data.engagedSessions / data.sessions;
 
-  animateNumber(kpiUsers, data.totalUsers, (n) => formatNumber(n), 500);
-  animateNumber(kpiSessions, data.sessions, (n) => formatNumber(n), 500);
+  kpiUsers.textContent = formatNumber(data.totalUsers);
+  kpiSessions.textContent = formatNumber(data.sessions);
   kpiSessionsPerUser.textContent = sessionsPerUser.toFixed(2);
-  animateNumber(kpiNewUsers, data.newUsers, (n) => formatNumber(n), 500);
+  kpiNewUsers.textContent = formatNumber(data.newUsers);
   kpiNewUsersShare.textContent = formatPercent(newUsersShare);
-  animateNumber(kpiEngaged, data.engagedSessions, (n) => formatNumber(n), 500);
+  kpiEngaged.textContent = formatNumber(data.engagedSessions);
   kpiEngRate.textContent = formatPercent(engagementRate);
   kpiAvgTime.textContent = `${Math.round(data.avgTime)} ${t("secondsLabel")}`;
-
   kpiGoalProgress.textContent = formatPercent(progress);
-  if (kpiGoalBar) {
-    kpiGoalBar.style.width = `${progressPct}%`;
-    kpiGoalBar.setAttribute("aria-valuenow", Math.round(progressPct));
-  }
+  kpiGoalBar.style.width = `${Math.min(progress * 100, 100)}%`;
 
   const monthlyForecast = Math.round((data.totalUsers / data.days) * 30);
   kpiGoalForecast.textContent = `${t("forecastLabel")}: ${formatNumber(
@@ -571,9 +500,7 @@ function renderTable(container, headers, rows) {
 function renderCharts(data) {
   const labels = getDailyLabels(data);
   const userSeries = data.dailyUsers.map((value) => Math.round(value));
-
-  const chartAnimation = { duration: 400 };
-  const gridColor = "rgba(13, 19, 33, 0.06)";
+  const colors = getChartColors();
 
   if (usersChart) usersChart.destroy();
   usersChart = new Chart(usersChartEl, {
@@ -584,21 +511,26 @@ function renderCharts(data) {
         {
           label: t("usersLabel"),
           data: userSeries,
-          borderColor: "#2563eb",
-          backgroundColor: "rgba(37, 99, 235, 0.1)",
+          borderColor: colors.primaryColor,
+          backgroundColor: colors.primaryAlpha,
           fill: true,
           tension: 0.3,
         },
       ],
     },
     options: {
-      animation: chartAnimation,
       plugins: {
         legend: { display: false },
+        title: {
+          display: true,
+          text: t("usersLabel"),
+          color: colors.textColor,
+          font: { size: 14, weight: 500 },
+        },
       },
       scales: {
         x: { display: false },
-        y: { grid: { color: gridColor } },
+        y: { grid: { color: colors.gridColor } },
       },
     },
   });
@@ -612,17 +544,16 @@ function renderCharts(data) {
         {
           data: data.channels.map((c) => Math.round(c.value * 100)),
           backgroundColor: [
-            "#2563eb",
-            "#0ea5e9",
-            "#f59e0b",
-            "#7c3aed",
-            "#059669",
+            colors.primaryColor,
+            "#47d1ff",
+            "#ffb547",
+            "#7c5cff",
+            "#2fd1a6",
           ],
         },
       ],
     },
     options: {
-      animation: chartAnimation,
       plugins: {
         legend: { position: "bottom" },
       },
@@ -639,75 +570,75 @@ function renderCharts(data) {
       datasets: trendData.datasets,
     },
     options: {
-      animation: chartAnimation,
       plugins: {
         legend: { position: "bottom" },
+        title: {
+          display: true,
+          text: t("channelsLabel"),
+          color: colors.textColor,
+          font: { size: 14, weight: 500 },
+        },
       },
       scales: {
         x: { stacked: true, display: false },
-        y: { stacked: true, grid: { color: gridColor } },
+        y: { stacked: true, grid: { color: colors.gridColor } },
       },
     },
   });
 
-  if (goalGaugeChartEl) {
-    if (goalGaugeChart) goalGaugeChart.destroy();
-    const progress = data.totalUsers / GOAL_USERS;
-    goalGaugeChart = new Chart(goalGaugeChartEl, {
-      type: "doughnut",
-      data: {
-        labels: [t("kpiGoalLabel"), t("remainingLabel")],
-        datasets: [
-          {
-            data: [Math.min(progress, 1), Math.max(1 - progress, 0)],
-            backgroundColor: ["#2563eb", "#e2e7ee"],
-            borderWidth: 0,
-          },
-        ],
-      },
-      options: {
-        cutout: "75%",
-        plugins: {
-          legend: { display: false },
-          tooltip: { enabled: false },
+  if (goalGaugeChart) goalGaugeChart.destroy();
+  const progress = data.totalUsers / GOAL_USERS;
+  goalGaugeChart = new Chart(goalGaugeChartEl, {
+    type: "doughnut",
+    data: {
+      labels: [t("kpiGoalLabel"), t("remainingLabel")],
+      datasets: [
+        {
+          data: [Math.min(progress, 1), Math.max(1 - progress, 0)],
+          backgroundColor: [colors.primaryColor, colors.gridColor],
+          borderWidth: 0,
         },
-        animation: {
-          duration: 400,
-          onComplete: function(animation) {
-            const chart = animation.chart;
-            const ctx = chart.ctx;
-            const width = chart.width;
-            const height = chart.height;
-            const fontSize = (height / 114).toFixed(2);
-            ctx.restore();
-            ctx.font = fontSize + "em sans-serif";
-            ctx.textBaseline = "middle";
-            ctx.fillStyle = "#0d1321";
-            const text = formatPercent(progress);
-            const textX = Math.round((width - ctx.measureText(text).width) / 2);
-            const textY = height / 2;
-            ctx.fillText(text, textX, textY);
-            ctx.save();
-          }
-        }
+      ],
+    },
+    options: {
+      cutout: "75%",
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false },
+        title: {
+          display: true,
+          text: t("kpiGoalLabel"),
+          color: colors.textColor,
+          font: { size: 14, weight: 500 },
+        },
       },
-    });
-  }
-}
-
-/** Используются только реальные данные GA4 (sources с medium = social). Без демо-подстановки. */
-function getSocialSourcesForDisplay(data) {
-  if (Array.isArray(data.socialSources) && data.socialSources.length > 0) {
-    return data.socialSources;
-  }
-  return [];
+      animation: {
+        onComplete: function(animation) {
+          const chart = animation.chart;
+          const ctx = chart.ctx;
+          const width = chart.width;
+          const height = chart.height;
+          const fontSize = (height / 114).toFixed(2);
+          ctx.restore();
+          ctx.font = fontSize + "em sans-serif";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = colors.textColor;
+          const text = formatPercent(progress);
+          const textX = Math.round((width - ctx.measureText(text).width) / 2);
+          const textY = height / 2;
+          ctx.fillText(text, textX, textY);
+          ctx.save();
+        }
+      }
+    },
+  });
 }
 
 function renderTables(data) {
   const channelRows = (data.channels || []).map((c) => [
-    localizeChannelLabel(c.label),
+    localizeChannelLabel(c.name || c.label),
     formatNumber(c.users ?? c.value * (data.totalUsers || 0)),
-    formatPercent(c.value),
+    formatPercent(c.value || (c.users / (data.totalUsers || 1))),
     formatPercent(c.engagementRate),
     formatNumber(c.newUsers),
   ]);
@@ -722,28 +653,6 @@ function renderTables(data) {
     ],
     channelRows
   );
-
-  if (socialSourcesTable) {
-    const src = data.trafficBySource || [];
-    const trafficRows = src.map((row) => [
-      row[0],
-      formatNumber(row[1]),
-      formatNumber(row[2]),
-      formatPercent(row[3]),
-      formatDuration(row[4]),
-    ]);
-    renderTable(
-      socialSourcesTable,
-      [
-        t("sessionSourceHeader"),
-        t("sessionsHeader"),
-        t("engagedHeader"),
-        t("engagementRateHeader"),
-        t("avgEngagementHeader"),
-      ],
-      trafficRows
-    );
-  }
 
   renderTable(
     sourcesTable,
@@ -841,10 +750,68 @@ function renderProblemPagesTable(pages) {
   });
 }
 
-async function fetchDashboardData(days, channel) {
-  const response = await fetch(
-    `/api/ga4?days=${days}&channel=${encodeURIComponent(channel)}`
-  );
+function formatDateISO(date) {
+  const d = new Date(date);
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
+}
+
+function getDateRange(rangeValue) {
+  const today = new Date();
+  let startDate, endDate = formatDateISO(today);
+  let days = null;
+
+  switch (rangeValue) {
+    case "7":
+      days = 7;
+      break;
+    case "28":
+      days = 28;
+      break;
+    case "31":
+      days = 31;
+      break;
+    case "90":
+      days = 90;
+      break;
+    case "quarter":
+      days = 90;
+      break;
+    case "half":
+      days = 180;
+      break;
+    case "365":
+      days = 365;
+      break;
+    case "custom":
+      if (dateFrom.value && dateTo.value) {
+        startDate = dateFrom.value;
+        endDate = dateTo.value;
+      } else {
+        days = 90; // fallback
+      }
+      break;
+    default:
+      days = 90;
+  }
+
+  return { days, startDate, endDate };
+}
+
+async function fetchDashboardData(rangeValue, channel, property) {
+  const { days, startDate, endDate } = getDateRange(rangeValue);
+  
+  let url = `/api/ga4?channel=${encodeURIComponent(channel)}&property=${encodeURIComponent(property)}`;
+  
+  if (days) {
+    url += `&days=${days}`;
+  }
+  if (startDate && endDate) {
+    url += `&startDate=${startDate}&endDate=${endDate}`;
+  }
+  
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error("API error");
   }
@@ -852,26 +819,16 @@ async function fetchDashboardData(days, channel) {
 }
 
 async function loadDashboard() {
-  const days = Number(rangeSelect.value);
+  const rangeValue = rangeSelect.value;
   const channel = channelSelect.value;
-  if (dashboardContent) dashboardContent.classList.add("is-loading");
+  const property = propertySelect.value;
   try {
-    const data = await fetchDashboardData(days, channel);
+    const data = await fetchDashboardData(rangeValue, channel, property);
     lastData = data;
     renderKpis(data);
     renderCharts(data);
     renderTables(data);
-    setInsightsLoading(true);
-    fetchAIInsights(data)
-      .then((result) => {
-        renderInsights(data, result);
-      })
-      .catch(() => {
-        renderInsights(data);
-      })
-      .finally(() => {
-        setInsightsLoading(false);
-      });
+    renderInsights(data);
     const now = new Date();
     const timeLabel = now.toLocaleTimeString(
       currentLanguage === "ru" ? "ru-RU" : "en-US",
@@ -888,20 +845,12 @@ async function loadDashboard() {
         ? "Ошибка API — проверьте сервер"
         : "API error — check server"
     );
-    if (!lastData) {
-      if (dashboardContent) dashboardContent.classList.remove("is-loading");
-      return;
-    }
+    if (!lastData) return;
     renderKpis(lastData);
     renderCharts(lastData);
     renderTables(lastData);
-    setInsightsLoading(true);
-    fetchAIInsights(lastData)
-      .then((result) => renderInsights(lastData, result))
-      .catch(() => renderInsights(lastData))
-      .finally(() => setInsightsLoading(false));
+    renderInsights(lastData);
   }
-  if (dashboardContent) dashboardContent.classList.remove("is-loading");
 }
 
 let lastData = null;
@@ -917,11 +866,7 @@ function handleLanguageChange() {
     renderKpis(lastData);
     renderCharts(lastData);
     renderTables(lastData);
-    setInsightsLoading(true);
-    fetchAIInsights(lastData)
-      .then((result) => renderInsights(lastData, result))
-      .catch(() => renderInsights(lastData))
-      .finally(() => setInsightsLoading(false));
+    renderInsights(lastData);
   }
 }
 
@@ -963,12 +908,12 @@ function buildChannelsTrend(data) {
     label: localizeChannelLabel(seriesItem.label),
     data: (seriesItem.values || []).map((v) => Math.round(v)),
     backgroundColor: [
-      "#2563eb",
-      "#0ea5e9",
-      "#f59e0b",
-      "#7c3aed",
-      "#059669",
-      "#6366f1",
+      "#2251ff",
+      "#47d1ff",
+      "#ffb547",
+      "#7c5cff",
+      "#2fd1a6",
+      "#c27bff",
     ][index % 6],
     stack: "channels",
   }));
@@ -981,37 +926,37 @@ function setupTabs() {
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const target = button.getAttribute("data-page");
-      tabButtons.forEach((btn) => {
-        btn.classList.remove("active");
-        btn.setAttribute("aria-selected", "false");
-      });
+      tabButtons.forEach((btn) => btn.classList.remove("active"));
       button.classList.add("active");
-      button.setAttribute("aria-selected", "true");
       sections.forEach((section) => {
-        const isActive = section.getAttribute("data-page") === target;
-        section.classList.toggle("active", isActive);
-        section.hidden = !isActive;
-        if (isActive) {
-          section.classList.add("animate-cards");
-          setTimeout(() => section.classList.remove("animate-cards"), 600);
+        if (section.getAttribute("data-page") === target) {
+          section.classList.add("active");
+        } else {
+          section.classList.remove("active");
         }
       });
     });
   });
-  const activeSection = document.querySelector(".page-section.active");
-  if (activeSection) {
-    activeSection.classList.add("animate-cards");
-    setTimeout(() => activeSection.classList.remove("animate-cards"), 600);
-  }
 }
 
 languageSelect.value = currentLanguage;
 applyTranslations();
 languageSelect.addEventListener("change", handleLanguageChange);
+themeToggle.addEventListener("click", toggleTheme);
 refreshBtn.addEventListener("click", loadDashboard);
-rangeSelect.addEventListener("change", loadDashboard);
+rangeSelect.addEventListener("change", () => {
+  const isCustom = rangeSelect.value === "custom";
+  dateFromLabel.style.display = isCustom ? "block" : "none";
+  dateToLabel.style.display = isCustom ? "block" : "none";
+  loadDashboard();
+});
+dateFrom.addEventListener("change", loadDashboard);
+dateTo.addEventListener("change", loadDashboard);
 channelSelect.addEventListener("change", loadDashboard);
+propertySelect.addEventListener("change", loadDashboard);
+themeToggle.addEventListener("click", toggleTheme);
 
+initTheme();
 setupTabs();
 loadDashboard();
 

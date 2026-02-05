@@ -4,7 +4,6 @@ const channelsChartEl = document.getElementById("channelsChart");
 const channelsTrendChartEl = document.getElementById("channelsTrendChart");
 const goalGaugeChartEl = document.getElementById("goalGaugeChart");
 const channelsTable = document.getElementById("channelsTable");
-const socialSourcesTable = document.getElementById("socialSourcesTable");
 const sourcesTable = document.getElementById("sourcesTable");
 const pagesTable = document.getElementById("pagesTable");
 const problemPagesTable = document.getElementById("problemPagesTable");
@@ -20,10 +19,8 @@ const kpiAvgTime = document.getElementById("kpiAvgTime");
 const kpiGoalProgress = document.getElementById("kpiGoalProgress");
 const kpiGoalBar = document.getElementById("kpiGoalBar");
 const kpiGoalForecast = document.getElementById("kpiGoalForecast");
-const dashboardContent = document.getElementById("dashboardContent");
 const insightSummary = document.getElementById("insightSummary");
 const insightActions = document.getElementById("insightActions");
-const insightAiBadge = document.getElementById("insightAiBadge");
 const dataStatus = document.getElementById("dataStatus");
 const dataStatusValue = document.getElementById("dataStatusValue");
 
@@ -74,11 +71,6 @@ const translations = {
     channelsShareTitle: "Доля каналов",
     channelsTrendTitle: "Динамика по каналам",
     channelsTableTitle: "Каналы",
-    trafficAcquisitionTitle: "Источники трафика",
-    sessionSourceHeader: "Источник",
-    sessionsHeader: "Сессии",
-    platformHeader: "Платформа",
-    shareOfSocialHeader: "Доля в соцсетях",
     goalGaugeTitle: "Прогресс к цели",
     topSourcesTitle: "Топ источники",
     topPagesTitle: "Топ страницы",
@@ -102,13 +94,12 @@ const translations = {
     dayLabel: "День",
     sourcesHeader: "Источник / Канал",
     pagesHeader: "Страница",
-    usersHeader: "Всего пользователей",
+    usersHeader: "Пользователи",
     engagementHeader: "Вовлеченность",
     engagedHeader: "Вовлеченные",
-    newUsersHeader: "Новые пользователи",
+    newUsersHeader: "Новые",
     avgEngagementHeader: "Среднее время вовлеченности",
     engagementRateHeader: "Коэффициент вовлеченности",
-    shareHeader: "Доля трафика",
     channelHeader: "Канал",
     remainingLabel: "Осталось",
     forecastLabel: "Прогноз",
@@ -151,11 +142,6 @@ const translations = {
     channelsShareTitle: "Channel share",
     channelsTrendTitle: "Channel trend",
     channelsTableTitle: "Channels",
-    trafficAcquisitionTitle: "Traffic acquisition",
-    sessionSourceHeader: "Session source",
-    sessionsHeader: "Sessions",
-    platformHeader: "Platform",
-    shareOfSocialHeader: "Share of social",
     goalGaugeTitle: "Goal progress",
     topSourcesTitle: "Top sources",
     topPagesTitle: "Top pages",
@@ -177,13 +163,12 @@ const translations = {
     dayLabel: "Day",
     sourcesHeader: "Source / Medium",
     pagesHeader: "Page path",
-    usersHeader: "Total users",
+    usersHeader: "Users",
     engagementHeader: "Engagement",
     engagedHeader: "Engaged",
-    newUsersHeader: "New users",
+    newUsersHeader: "New",
     avgEngagementHeader: "Avg engagement",
     engagementRateHeader: "Engagement rate",
-    shareHeader: "Share of traffic",
     channelHeader: "Channel",
     remainingLabel: "Remaining",
     forecastLabel: "Forecast",
@@ -202,46 +187,11 @@ const formatNumber = (value) => {
     currentLanguage === "ru" ? "ru-RU" : "en-US"
   ).format(Math.round(safeValue));
 };
-
-function animateNumber(el, targetValue, formatter, duration = 600) {
-  if (!el || typeof formatter !== "function") return;
-  const num = Number(targetValue);
-  if (!Number.isFinite(num)) {
-    el.textContent = "—";
-    return;
-  }
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (prefersReducedMotion || duration === 0) {
-    el.textContent = formatter(num);
-    return;
-  }
-  const start = performance.now();
-  const startValue = 0;
-  const step = (now) => {
-    const elapsed = now - start;
-    const t = Math.min(elapsed / duration, 1);
-    const eased = 1 - (1 - t) * (1 - t);
-    const current = Math.round(startValue + (num - startValue) * eased);
-    el.textContent = formatter(current);
-    if (t < 1) requestAnimationFrame(step);
-    else el.textContent = formatter(num);
-  };
-  requestAnimationFrame(step);
-}
 const formatPercent = (value) => {
   const safeValue = Number.isFinite(Number(value)) ? Number(value) : null;
   if (safeValue === null) return "—";
   return `${Math.round(safeValue * 100)}%`;
 };
-
-function formatDuration(seconds) {
-  const sec = Number(seconds);
-  if (!Number.isFinite(sec) || sec < 0) return "—";
-  if (sec < 60) return `${Math.round(sec)}s`;
-  const m = Math.floor(sec / 60);
-  const s = Math.round(sec % 60);
-  return s ? `${m}m ${s}s` : `${m}m`;
-}
 
 function t(key) {
   return translations[currentLanguage]?.[key] || translations.ru[key] || key;
@@ -348,74 +298,11 @@ function buildInsightActions(data) {
   return actions;
 }
 
-function setInsightsLoading(loading) {
+function renderInsights(data) {
   if (!insightSummary || !insightActions) return;
-  if (loading) {
-    insightSummary.textContent =
-      currentLanguage === "ru"
-        ? "Анализ текущих данных с помощью ИИ…"
-        : "Analyzing data with AI…";
-    insightActions.innerHTML = "<li aria-busy=\"true\">—</li>";
-    if (insightSummary.closest(".insight-box")) {
-      insightSummary.closest(".insight-box").classList.add("is-loading-ai");
-    }
-  } else {
-    if (insightSummary.closest(".insight-box")) {
-      insightSummary.closest(".insight-box").classList.remove("is-loading-ai");
-    }
-  }
-}
-
-function renderInsights(data, aiResult) {
-  if (!insightSummary || !insightActions) return;
-  const fromAI = aiResult && (aiResult.summary || (aiResult.recommendations && aiResult.recommendations.length));
-  if (insightAiBadge) {
-    if (fromAI) {
-      insightAiBadge.textContent = currentLanguage === "ru" ? "ИИ" : "AI";
-      insightAiBadge.setAttribute("title", currentLanguage === "ru" ? "Сгенерировано с помощью ИИ" : "Generated by AI");
-      insightAiBadge.classList.add("is-visible");
-    } else {
-      insightAiBadge.classList.remove("is-visible");
-    }
-  }
-  if (fromAI) {
-    insightSummary.textContent = aiResult.summary || "—";
-    const list = Array.isArray(aiResult.recommendations) ? aiResult.recommendations : [];
-    insightActions.innerHTML = list.map((item) => `<li>${item}</li>`).join("") || "<li>—</li>";
-    return;
-  }
   insightSummary.textContent = buildInsightSummary(data);
   const actions = buildInsightActions(data);
   insightActions.innerHTML = actions.map((item) => `<li>${item}</li>`).join("");
-}
-
-async function fetchAIInsights(data) {
-  try {
-    const res = await fetch("/api/insights", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        data: {
-          days: data.days,
-          dailyUsers: data.dailyUsers,
-          dailyDates: data.dailyDates,
-          totalUsers: data.totalUsers,
-          sessions: data.sessions,
-          newUsers: data.newUsers,
-          engagedSessions: data.engagedSessions,
-          avgTime: data.avgTime,
-          channels: data.channels,
-          sources: data.sources,
-          pages: data.pages,
-        },
-        language: currentLanguage,
-      }),
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
 }
 
 function setDataStatus(state, text) {
@@ -476,27 +363,12 @@ function generateMockData(days, channel) {
     })),
   };
 
-  const socialSources = [];
-
   const sources = [
     ["google / organic", totalUsers * 0.38, totalUsers * 0.16, 0.57],
     ["yandex / organic", totalUsers * 0.21, totalUsers * 0.11, 0.51],
     ["google / cpc", totalUsers * 0.18, totalUsers * 0.07, 0.46],
     ["instagram / social", totalUsers * 0.1, totalUsers * 0.05, 0.42],
     ["direct / none", totalUsers * 0.07, totalUsers * 0.03, 0.49],
-  ];
-
-  const trafficBySource = [
-    ["(direct)", 1058, 321, 0.3034, 17],
-    ["google", 498, 327, 0.6566, 73],
-    ["newsletter", 97, 7, 0.0722, 4],
-    ["google_maps", 92, 53, 0.5761, 49],
-    ["m.facebook.com", 69, 6, 0.087, 4],
-    ["linkedin.com", 67, 36, 0.5373, 35],
-    ["ig", 64, 39, 0.6094, 34],
-    ["facebook.com", 46, 18, 0.3913, 2],
-    ["chatgpt.com", 43, 19, 0.4419, 58],
-    ["yandex.ru", 29, 14, 0.4828, 45],
   ];
 
   const pages = [
@@ -518,34 +390,27 @@ function generateMockData(days, channel) {
     avgTime,
     channels: channelsWithMetrics,
     channelsTrend,
-    socialSources,
     sources,
-    trafficBySource,
     pages,
   };
 }
 
 function renderKpis(data) {
   const progress = data.totalUsers / GOAL_USERS;
-  const progressPct = Math.min(progress * 100, 100);
   const sessionsPerUser = data.sessions / data.totalUsers;
   const newUsersShare = data.newUsers / data.totalUsers;
   const engagementRate = data.engagedSessions / data.sessions;
 
-  animateNumber(kpiUsers, data.totalUsers, (n) => formatNumber(n), 500);
-  animateNumber(kpiSessions, data.sessions, (n) => formatNumber(n), 500);
+  kpiUsers.textContent = formatNumber(data.totalUsers);
+  kpiSessions.textContent = formatNumber(data.sessions);
   kpiSessionsPerUser.textContent = sessionsPerUser.toFixed(2);
-  animateNumber(kpiNewUsers, data.newUsers, (n) => formatNumber(n), 500);
+  kpiNewUsers.textContent = formatNumber(data.newUsers);
   kpiNewUsersShare.textContent = formatPercent(newUsersShare);
-  animateNumber(kpiEngaged, data.engagedSessions, (n) => formatNumber(n), 500);
+  kpiEngaged.textContent = formatNumber(data.engagedSessions);
   kpiEngRate.textContent = formatPercent(engagementRate);
   kpiAvgTime.textContent = `${Math.round(data.avgTime)} ${t("secondsLabel")}`;
-
   kpiGoalProgress.textContent = formatPercent(progress);
-  if (kpiGoalBar) {
-    kpiGoalBar.style.width = `${progressPct}%`;
-    kpiGoalBar.setAttribute("aria-valuenow", Math.round(progressPct));
-  }
+  kpiGoalBar.style.width = `${Math.min(progress * 100, 100)}%`;
 
   const monthlyForecast = Math.round((data.totalUsers / data.days) * 30);
   kpiGoalForecast.textContent = `${t("forecastLabel")}: ${formatNumber(
@@ -572,9 +437,6 @@ function renderCharts(data) {
   const labels = getDailyLabels(data);
   const userSeries = data.dailyUsers.map((value) => Math.round(value));
 
-  const chartAnimation = { duration: 400 };
-  const gridColor = "rgba(13, 19, 33, 0.06)";
-
   if (usersChart) usersChart.destroy();
   usersChart = new Chart(usersChartEl, {
     type: "line",
@@ -584,21 +446,20 @@ function renderCharts(data) {
         {
           label: t("usersLabel"),
           data: userSeries,
-          borderColor: "#2563eb",
-          backgroundColor: "rgba(37, 99, 235, 0.1)",
+          borderColor: "#2251ff",
+          backgroundColor: "rgba(34, 81, 255, 0.1)",
           fill: true,
           tension: 0.3,
         },
       ],
     },
     options: {
-      animation: chartAnimation,
       plugins: {
         legend: { display: false },
       },
       scales: {
         x: { display: false },
-        y: { grid: { color: gridColor } },
+        y: { grid: { color: "#eef2f8" } },
       },
     },
   });
@@ -612,17 +473,16 @@ function renderCharts(data) {
         {
           data: data.channels.map((c) => Math.round(c.value * 100)),
           backgroundColor: [
-            "#2563eb",
-            "#0ea5e9",
-            "#f59e0b",
-            "#7c3aed",
-            "#059669",
+            "#2251ff",
+            "#47d1ff",
+            "#ffb547",
+            "#7c5cff",
+            "#2fd1a6",
           ],
         },
       ],
     },
     options: {
-      animation: chartAnimation,
       plugins: {
         legend: { position: "bottom" },
       },
@@ -639,75 +499,44 @@ function renderCharts(data) {
       datasets: trendData.datasets,
     },
     options: {
-      animation: chartAnimation,
       plugins: {
         legend: { position: "bottom" },
       },
       scales: {
         x: { stacked: true, display: false },
-        y: { stacked: true, grid: { color: gridColor } },
+        y: { stacked: true, grid: { color: "#eef2f8" } },
       },
     },
   });
 
-  if (goalGaugeChartEl) {
-    if (goalGaugeChart) goalGaugeChart.destroy();
-    const progress = data.totalUsers / GOAL_USERS;
-    goalGaugeChart = new Chart(goalGaugeChartEl, {
-      type: "doughnut",
-      data: {
-        labels: [t("kpiGoalLabel"), t("remainingLabel")],
-        datasets: [
-          {
-            data: [Math.min(progress, 1), Math.max(1 - progress, 0)],
-            backgroundColor: ["#2563eb", "#e2e7ee"],
-            borderWidth: 0,
-          },
-        ],
-      },
-      options: {
-        cutout: "75%",
-        plugins: {
-          legend: { display: false },
-          tooltip: { enabled: false },
+  if (goalGaugeChart) goalGaugeChart.destroy();
+  const progress = data.totalUsers / GOAL_USERS;
+  goalGaugeChart = new Chart(goalGaugeChartEl, {
+    type: "doughnut",
+    data: {
+      labels: [t("kpiGoalLabel"), t("remainingLabel")],
+      datasets: [
+        {
+          data: [Math.min(progress, 1), Math.max(1 - progress, 0)],
+          backgroundColor: ["#2251ff", "#eef2f8"],
+          borderWidth: 0,
         },
-        animation: {
-          duration: 400,
-          onComplete: function(animation) {
-            const chart = animation.chart;
-            const ctx = chart.ctx;
-            const width = chart.width;
-            const height = chart.height;
-            const fontSize = (height / 114).toFixed(2);
-            ctx.restore();
-            ctx.font = fontSize + "em sans-serif";
-            ctx.textBaseline = "middle";
-            ctx.fillStyle = "#0d1321";
-            const text = formatPercent(progress);
-            const textX = Math.round((width - ctx.measureText(text).width) / 2);
-            const textY = height / 2;
-            ctx.fillText(text, textX, textY);
-            ctx.save();
-          }
-        }
+      ],
+    },
+    options: {
+      cutout: "75%",
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false },
       },
-    });
-  }
-}
-
-/** Используются только реальные данные GA4 (sources с medium = social). Без демо-подстановки. */
-function getSocialSourcesForDisplay(data) {
-  if (Array.isArray(data.socialSources) && data.socialSources.length > 0) {
-    return data.socialSources;
-  }
-  return [];
+    },
+  });
 }
 
 function renderTables(data) {
   const channelRows = (data.channels || []).map((c) => [
     localizeChannelLabel(c.label),
     formatNumber(c.users ?? c.value * (data.totalUsers || 0)),
-    formatPercent(c.value),
     formatPercent(c.engagementRate),
     formatNumber(c.newUsers),
   ]);
@@ -716,34 +545,11 @@ function renderTables(data) {
     [
       t("channelHeader"),
       t("usersHeader"),
-      t("shareHeader"),
       t("engagementRateHeader"),
       t("newUsersHeader"),
     ],
     channelRows
   );
-
-  if (socialSourcesTable) {
-    const src = data.trafficBySource || [];
-    const trafficRows = src.map((row) => [
-      row[0],
-      formatNumber(row[1]),
-      formatNumber(row[2]),
-      formatPercent(row[3]),
-      formatDuration(row[4]),
-    ]);
-    renderTable(
-      socialSourcesTable,
-      [
-        t("sessionSourceHeader"),
-        t("sessionsHeader"),
-        t("engagedHeader"),
-        t("engagementRateHeader"),
-        t("avgEngagementHeader"),
-      ],
-      trafficRows
-    );
-  }
 
   renderTable(
     sourcesTable,
@@ -854,24 +660,13 @@ async function fetchDashboardData(days, channel) {
 async function loadDashboard() {
   const days = Number(rangeSelect.value);
   const channel = channelSelect.value;
-  if (dashboardContent) dashboardContent.classList.add("is-loading");
   try {
     const data = await fetchDashboardData(days, channel);
     lastData = data;
     renderKpis(data);
     renderCharts(data);
     renderTables(data);
-    setInsightsLoading(true);
-    fetchAIInsights(data)
-      .then((result) => {
-        renderInsights(data, result);
-      })
-      .catch(() => {
-        renderInsights(data);
-      })
-      .finally(() => {
-        setInsightsLoading(false);
-      });
+    renderInsights(data);
     const now = new Date();
     const timeLabel = now.toLocaleTimeString(
       currentLanguage === "ru" ? "ru-RU" : "en-US",
@@ -888,20 +683,12 @@ async function loadDashboard() {
         ? "Ошибка API — проверьте сервер"
         : "API error — check server"
     );
-    if (!lastData) {
-      if (dashboardContent) dashboardContent.classList.remove("is-loading");
-      return;
-    }
+    if (!lastData) return;
     renderKpis(lastData);
     renderCharts(lastData);
     renderTables(lastData);
-    setInsightsLoading(true);
-    fetchAIInsights(lastData)
-      .then((result) => renderInsights(lastData, result))
-      .catch(() => renderInsights(lastData))
-      .finally(() => setInsightsLoading(false));
+    renderInsights(lastData);
   }
-  if (dashboardContent) dashboardContent.classList.remove("is-loading");
 }
 
 let lastData = null;
@@ -917,11 +704,7 @@ function handleLanguageChange() {
     renderKpis(lastData);
     renderCharts(lastData);
     renderTables(lastData);
-    setInsightsLoading(true);
-    fetchAIInsights(lastData)
-      .then((result) => renderInsights(lastData, result))
-      .catch(() => renderInsights(lastData))
-      .finally(() => setInsightsLoading(false));
+    renderInsights(lastData);
   }
 }
 
@@ -963,12 +746,12 @@ function buildChannelsTrend(data) {
     label: localizeChannelLabel(seriesItem.label),
     data: (seriesItem.values || []).map((v) => Math.round(v)),
     backgroundColor: [
-      "#2563eb",
-      "#0ea5e9",
-      "#f59e0b",
-      "#7c3aed",
-      "#059669",
-      "#6366f1",
+      "#2251ff",
+      "#47d1ff",
+      "#ffb547",
+      "#7c5cff",
+      "#2fd1a6",
+      "#c27bff",
     ][index % 6],
     stack: "channels",
   }));
@@ -981,28 +764,17 @@ function setupTabs() {
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const target = button.getAttribute("data-page");
-      tabButtons.forEach((btn) => {
-        btn.classList.remove("active");
-        btn.setAttribute("aria-selected", "false");
-      });
+      tabButtons.forEach((btn) => btn.classList.remove("active"));
       button.classList.add("active");
-      button.setAttribute("aria-selected", "true");
       sections.forEach((section) => {
-        const isActive = section.getAttribute("data-page") === target;
-        section.classList.toggle("active", isActive);
-        section.hidden = !isActive;
-        if (isActive) {
-          section.classList.add("animate-cards");
-          setTimeout(() => section.classList.remove("animate-cards"), 600);
+        if (section.getAttribute("data-page") === target) {
+          section.classList.add("active");
+        } else {
+          section.classList.remove("active");
         }
       });
     });
   });
-  const activeSection = document.querySelector(".page-section.active");
-  if (activeSection) {
-    activeSection.classList.add("animate-cards");
-    setTimeout(() => activeSection.classList.remove("animate-cards"), 600);
-  }
 }
 
 languageSelect.value = currentLanguage;

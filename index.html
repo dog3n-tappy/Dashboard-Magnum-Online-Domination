@@ -4,18 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Magnum Estate — Дашборд трафика</title>
-    <link rel="stylesheet" href="styles.minimal.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   </head>
   <body>
     <header class="topbar">
       <div class="brand">
-        <img src="magnum-estate-logo.png" alt="Magnum Estate" class="brand-logo" width="180" height="48" />
-        <div class="brand-subtitle-wrap">
-          <span class="subtitle" data-i18n="brandSubtitle">Трафик и эффективность сайта</span>
+        <div class="logo">M</div>
+        <div>
+          <div class="title" data-i18n="brandTitle">Magnum Estate</div>
+          <div class="subtitle" data-i18n="brandSubtitle">
+            Трафик и эффективность сайта
+          </div>
         </div>
       </div>
       <div class="filters">
@@ -47,48 +47,34 @@
             <option value="en">English</option>
           </select>
         </label>
-        <button id="refreshBtn" class="primary" type="button" data-i18n="refreshBtn">
+        <button id="refreshBtn" class="primary" data-i18n="refreshBtn">
           Обновить
         </button>
       </div>
     </header>
 
-    <main class="container" id="dashboardContent">
+    <main class="container">
       <div id="dataStatus" class="data-status" role="status">
         <span data-i18n="dataStatusLabel">Источник данных:</span>
         <span id="dataStatusValue">—</span>
       </div>
-      <nav class="page-tabs" role="tablist" aria-label="Разделы дашборда">
+      <nav class="page-tabs">
         <button
           class="tab-button active"
-          role="tab"
-          aria-selected="true"
           data-page="overview"
           data-i18n="tabOverview"
         >
           CEO Overview
         </button>
-        <button class="tab-button" role="tab" aria-selected="false" data-page="marketing" data-i18n="tabMarketing">
+        <button class="tab-button" data-page="marketing" data-i18n="tabMarketing">
           Marketing
         </button>
-        <button class="tab-button" role="tab" aria-selected="false" data-page="content" data-i18n="tabContent">
+        <button class="tab-button" data-page="content" data-i18n="tabContent">
           Content
         </button>
       </nav>
 
-      <section class="page-section active" data-page="overview" role="tabpanel">
-        <!-- Hero: один главный фокус — прогресс к цели -->
-        <div class="hero-kpi" id="heroKpi">
-          <div class="hero-kpi-content">
-            <h2 data-i18n="kpiGoalLabel">Прогресс к цели</h2>
-            <div class="hero-kpi-value" id="kpiGoalProgress">—</div>
-            <div class="hero-kpi-note" id="kpiGoalForecast">—</div>
-            <div class="hero-kpi-bar-wrap">
-              <div class="hero-kpi-bar-fill" id="kpiGoalBar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-            </div>
-          </div>
-        </div>
-
+      <section class="page-section active" data-page="overview">
         <section class="kpi-grid">
           <div class="kpi">
             <div class="kpi-label" data-i18n="kpiUsersLabel">
@@ -136,62 +122,72 @@
               на пользователя
             </div>
           </div>
+          <div class="kpi goal">
+            <div class="kpi-label" data-i18n="kpiGoalLabel">
+              Прогресс к цели
+            </div>
+            <div class="kpi-value" id="kpiGoalProgress">—</div>
+            <div class="kpi-bar">
+              <div class="kpi-bar-fill" id="kpiGoalBar"></div>
+            </div>
+            <div class="kpi-note" id="kpiGoalForecast">—</div>
+          </div>
         </section>
 
         <section class="grid">
-          <div class="card span-12" data-stagger="1">
+          <div class="card span-8">
             <div class="card-title" data-i18n="usersTrendTitle">
               Динамика пользователей
             </div>
-            <canvas id="usersChart" height="140" aria-label="График динамики пользователей"></canvas>
+            <canvas id="usersChart" height="140"></canvas>
           </div>
-          <div class="card span-12" data-stagger="2">
+          <div class="card span-4">
+            <div class="card-title" data-i18n="goalGaugeTitle">
+              Прогресс к цели
+            </div>
+            <canvas id="goalGaugeChart" height="180"></canvas>
+          </div>
+          <div class="card span-12">
             <div class="card-title" data-i18n="channelsTableTitle">
               Каналы
             </div>
-            <div id="channelsTable" class="table table-5"></div>
-          </div>
-          <div class="card span-12" data-stagger="3">
-            <div class="card-title" data-i18n="trafficAcquisitionTitle">
-              Источники трафика
-            </div>
-            <div id="socialSourcesTable" class="table table-5"></div>
+            <div id="channelsTable" class="table table-4"></div>
           </div>
         </section>
       </section>
 
-      <section class="page-section" data-page="marketing" role="tabpanel" hidden>
+      <section class="page-section" data-page="marketing">
         <section class="grid">
-          <div class="card span-6" data-stagger="1">
+          <div class="card span-6">
             <div class="card-title" data-i18n="topSourcesTitle">
               Топ источники
             </div>
             <div id="sourcesTable" class="table table-4"></div>
           </div>
-          <div class="card span-6" data-stagger="2">
+          <div class="card span-6">
             <div class="card-title" data-i18n="channelsShareTitle">
               Доля каналов
             </div>
-            <canvas id="channelsChart" height="180" aria-label="Доля каналов трафика"></canvas>
+            <canvas id="channelsChart" height="180"></canvas>
           </div>
-          <div class="card span-12" data-stagger="3">
+          <div class="card span-12">
             <div class="card-title" data-i18n="channelsTrendTitle">
               Динамика по каналам
             </div>
-            <canvas id="channelsTrendChart" height="170" aria-label="Динамика трафика по каналам"></canvas>
+            <canvas id="channelsTrendChart" height="170"></canvas>
           </div>
         </section>
       </section>
 
-      <section class="page-section" data-page="content" role="tabpanel" hidden>
+      <section class="page-section" data-page="content">
         <section class="grid">
-          <div class="card span-12" data-stagger="1">
+          <div class="card span-12">
             <div class="card-title" data-i18n="topPagesTitle">
               Топ страницы
             </div>
             <div id="pagesTable" class="table table-4"></div>
           </div>
-          <div class="card span-12" data-stagger="2">
+          <div class="card span-12">
             <div class="card-title" data-i18n="problemPagesTitle">
               Проблемные страницы
             </div>
@@ -200,33 +196,25 @@
         </section>
 
         <section class="grid">
-          <div class="card span-12" data-stagger="3">
+          <div class="card span-12">
             <div class="insight-box">
-              <div class="insight-heading-row">
-                <div class="insight-title" data-i18n="insightTitle">
-                  Выявленные закономерности и инсайты
-                </div>
-                <span class="insight-ai-badge" id="insightAiBadge" aria-label="Анализ ИИ" title="Сгенерировано с помощью ИИ">ИИ</span>
-              </div>
-              <p class="muted" id="insightSummary">—</p>
-              <div class="insight-title" data-i18n="insightActionsTitle">
-                Стратегические рекомендации
-              </div>
-              <ol class="insight-list" id="insightActions">
-                <li>—</li>
-                <li>—</li>
-                <li>—</li>
-              </ol>
+            <div class="insight-title" data-i18n="insightTitle">
+              Выявленные закономерности и инсайты
+            </div>
+            <p class="muted" id="insightSummary">—</p>
+            <div class="insight-title" data-i18n="insightActionsTitle">
+              Стратегические рекомендации
+            </div>
+            <ol class="insight-list" id="insightActions">
+              <li>—</li>
+              <li>—</li>
+              <li>—</li>
+            </ol>
             </div>
           </div>
         </section>
       </section>
     </main>
-
-    <footer class="bottombar">
-      <div class="bottombar-brand" data-i18n="brandTitle">Magnum Estate</div>
-      <div class="bottombar-meta">Traffic Dashboard</div>
-    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="app.js"></script>
