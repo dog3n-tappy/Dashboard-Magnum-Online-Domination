@@ -23,15 +23,48 @@ const insightActions = document.getElementById("insightActions");
 const dataStatus = document.getElementById("dataStatus");
 const dataStatusValue = document.getElementById("dataStatusValue");
 
+// Backlinks KPI elements
+const kpiBacklinks = document.getElementById("kpiBacklinks");
+const kpiNewBacklinks = document.getElementById("kpiNewBacklinks");
+const kpiDomains = document.getElementById("kpiDomains");
+const kpiFollow = document.getElementById("kpiFollow");
+const kpiFollowPercent = document.getElementById("kpiFollowPercent");
+const kpiNofollow = document.getElementById("kpiNofollow");
+const kpiNofollowPercent = document.getElementById("kpiNofollowPercent");
+const kpiAvgDa = document.getElementById("kpiAvgDa");
+
+// Backlinks chart and table elements
+const backlinksChartEl = document.getElementById("backlinksChart");
+const followNofollowChartEl = document.getElementById("followNofollowChart");
+const topDomainsTable = document.getElementById("topDomainsTable");
+const anchorTextTable = document.getElementById("anchorTextTable");
+
 
 const rangeSelect = document.getElementById("rangeSelect");
 const channelSelect = document.getElementById("channelSelect");
+const propertySelect = document.getElementById("propertySelect");
 const refreshBtn = document.getElementById("refreshBtn");
 const languageSelect = document.getElementById("languageSelect");
+const themeToggleBtn = document.getElementById("themeToggleBtn");
 
 let usersChart;
 let channelsChart;
 let channelsTrendChart;
+let backlinksChart;
+let followNofollowChart;
+
+// Helper function to get chart colors based on current theme
+function getChartColors() {
+  const isDark = document.body.getAttribute("data-theme") === "dark";
+  return {
+    textColor: isDark ? "#ffffff" : "#0f1a2a",
+    gridColor: isDark ? "#1a2a3a" : "#eef2f8",
+    axisColor: isDark ? "#e0e0e0" : "#0f1a2a",
+    lineColor: isDark ? "#6dcbf5" : "#2251ff",
+    backgroundColor: isDark ? "rgba(109, 203, 245, 0.15)" : "rgba(34, 81, 255, 0.1)",
+    canvasBackground: isDark ? "#0d1f2a" : "#ffffff",
+  };
+}
 
 const translations = {
   ru: {
@@ -40,6 +73,7 @@ const translations = {
     tabOverview: "CEO Overview",
     tabMarketing: "Marketing",
     tabContent: "Content",
+    tabBacklinks: "Backlinks",
     periodLabel: "Период",    periodToday: "Сегодня",
     periodYesterday: "Вчера",    period30: "Последние 30 дней",
     period90: "Последние 90 дней",
@@ -52,6 +86,7 @@ const translations = {
     channelDirect: "Прямой",
     channelReferral: "Рефералы",
     languageLabel: "Язык",
+    propertyLabel: "Сайт",
     refreshBtn: "Обновить",
     dataStatusLabel: "Источник данных:",
     kpiUsersLabel: "Уникальные пользователи",
@@ -104,6 +139,32 @@ const translations = {
     secondsLabel: "сек",
     perDayLabel: " / день",
     perMonthLabel: " / мес",
+    // Backlinks translations (GSC data)
+    kpiBacklinksLabel: "Поисковые показы",
+    kpiBacklinksNote: "Сколько раз ваш сайт показан",
+    kpiNewBacklinksLabel: "Всего кликов",
+    kpiNewBacklinksNote: "Из результатов поиска",
+    kpiDomainsLabel: "Уникальные запросы",
+    kpiDomainsNote: "Поисковые термины",
+    kpiFollowLabel: "Показы с кликами",
+    kpiFollowNote: "Показы, которые привели клики",
+    kpiNofollowLabel: "Показы без кликов",
+    kpiNofollowNote: "Без кликов из поиска",
+    kpiAvgDaLabel: "Средняя позиция",
+    kpiAvgDaNote: "Место в поиске",
+    kpiBacklinksGrowthLabel: "Тренд показов",
+    kpiBacklinksGrowthNote: "За период",
+    backlinksTitle: "Тренд поисковых показов",
+    followNofollowTitle: "Клики vs Показы",
+    topDomainsTitle: "Топ поисковых запросов",
+    anchorTextTitle: "Распределение запросов",
+    backlinksTableTitle: "Показы",
+    domainsHeader: "Запрос",
+    backlinksCountHeader: "Показы",
+    daHeader: "Позиция",
+    typeHeader: "Тип",
+    anchorHeader: "Запрос",
+    countHeader: "Количество",
   },
   en: {
     brandTitle: "Magnum Estate",
@@ -111,6 +172,7 @@ const translations = {
     tabOverview: "CEO Overview",
     tabMarketing: "Marketing",
     tabContent: "Content",
+    tabBacklinks: "Backlinks",
     periodLabel: "Period",
     periodToday: "Today",
     periodYesterday: "Yesterday",
@@ -125,6 +187,7 @@ const translations = {
     channelDirect: "Direct",
     channelReferral: "Referral",
     languageLabel: "Language",
+    propertyLabel: "Property",
     refreshBtn: "Refresh",
     dataStatusLabel: "Data source:",
     kpiUsersLabel: "Unique users",
@@ -175,6 +238,32 @@ const translations = {
     secondsLabel: "sec",
     perDayLabel: " / day",
     perMonthLabel: " / month",
+    // Backlinks translations (GSC data)
+    kpiBacklinksLabel: "Search Impressions",
+    kpiBacklinksNote: "Times your site appeared",
+    kpiNewBacklinksLabel: "Total Clicks",
+    kpiNewBacklinksNote: "From search results",
+    kpiDomainsLabel: "Unique Queries",
+    kpiDomainsNote: "Search terms driving traffic",
+    kpiFollowLabel: "Clicked Impressions",
+    kpiFollowNote: "Impressions with clicks",
+    kpiNofollowLabel: "Unclicked Impressions",
+    kpiNofollowNote: "No clicks from search",
+    kpiAvgDaLabel: "Average Position",
+    kpiAvgDaNote: "Search ranking",
+    kpiBacklinksGrowthLabel: "Impressions trend",
+    kpiBacklinksGrowthNote: "Over period",
+    backlinksTitle: "Search Impressions Trend",
+    followNofollowTitle: "Clicks vs Impressions",
+    topDomainsTitle: "Top Search Queries",
+    anchorTextTitle: "Query distribution",
+    backlinksTableTitle: "Search queries",
+    domainsHeader: "Query",
+    backlinksCountHeader: "Impressions",
+    daHeader: "Avg Position",
+    typeHeader: "Type",
+    anchorHeader: "Search query",
+    countHeader: "Count",
   },
 };
 
@@ -307,7 +396,7 @@ function renderInsights(data) {
 
 function setDataStatus(state, text) {
   if (!dataStatus || !dataStatusValue) return;
-  dataStatus.classList.remove("ok", "error");
+  dataStatus.classList.remove("ok", "error", "unavailable");
   if (state) dataStatus.classList.add(state);
   dataStatusValue.textContent = text;
 }
@@ -395,6 +484,224 @@ function generateMockData(days, channel) {
   };
 }
 
+function generateMockBacklinksData(days) {
+  const baseBacklinks = 850 + Math.random() * 250;
+  const trend = Math.random() * 5;
+  const dailyDates = Array.from({ length: days }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (days - i - 1));
+    return d.toISOString().slice(0, 10).replace(/-/g, "");
+  });
+
+  const dailyBacklinks = Array.from({ length: days }, (_, i) => {
+    const noise = Math.random() * 40 - 20;
+    return Math.max(100, baseBacklinks + i * trend + noise);
+  });
+
+  const totalBacklinks = Math.round(dailyBacklinks.reduce((sum, v) => sum + v, 0) / days * 30);
+  const newBacklinks = Math.round(totalBacklinks * 0.15); // 15% new in period
+  const referringDomains = Math.round(totalBacklinks * 0.25); // ~25% unique domains
+  const followBacklinks = Math.round(totalBacklinks * 0.68);
+  const nofollowBacklinks = totalBacklinks - followBacklinks;
+  const avgDA = 35 + Math.random() * 25; // Domain Authority 35-60
+
+  const topDomains = [
+    ["medium.com", Math.round(totalBacklinks * 0.18), Math.round(avgDA + 8)],
+    ["reddit.com", Math.round(totalBacklinks * 0.14), Math.round(avgDA + 5)],
+    ["linkedin.com", Math.round(totalBacklinks * 0.12), Math.round(avgDA + 10)],
+    ["forbes.com", Math.round(totalBacklinks * 0.1), Math.round(avgDA + 12)],
+    ["quora.com", Math.round(totalBacklinks * 0.08), Math.round(avgDA - 5)],
+  ];
+
+  const anchorTextDistribution = [
+    ["real estate", Math.round(totalBacklinks * 0.22)],
+    ["luxury homes", Math.round(totalBacklinks * 0.18)],
+    ["property investment", Math.round(totalBacklinks * 0.15)],
+    ["estate management", Math.round(totalBacklinks * 0.12)],
+    ["magnum estates", Math.round(totalBacklinks * 0.10)],
+    ["other anchors", Math.round(totalBacklinks * 0.23)],
+  ];
+
+  return {
+    days,
+    dailyDates,
+    dailyBacklinks,
+    totalBacklinks,
+    newBacklinks,
+    referringDomains,
+    followBacklinks,
+    nofollowBacklinks,
+    avgDA,
+    topDomains,
+    anchorTextDistribution,
+  };
+}
+
+function renderBacklinksKpis(data) {
+  if (!data) return;
+  
+  // If data is not available, show notice
+  if (data.dataAvailable === false) {
+    const notice = currentLanguage === 'ru' 
+      ? 'Данные Google Search Console недоступны для этого свойства' 
+      : 'Google Search Console data is not available for this property';
+    kpiBacklinks.textContent = '—';
+    kpiNewBacklinks.textContent = '—';
+    kpiDomains.textContent = '—';
+    kpiFollow.textContent = '—';
+    kpiFollowPercent.textContent = `(${notice})`;
+    kpiNofollow.textContent = '—';
+    kpiNofollowPercent.textContent = '';
+    kpiAvgDa.textContent = '—';
+    return;
+  }
+  
+  // Only render if we have valid data
+  if (data.totalBacklinks === 0) return;
+  
+  const followPercent = (data.followBacklinks / data.totalBacklinks);
+  const nofollowPercent = (data.nofollowBacklinks / data.totalBacklinks);
+
+  kpiBacklinks.textContent = formatNumber(data.totalBacklinks);
+  kpiNewBacklinks.textContent = formatNumber(data.newBacklinks);
+  kpiDomains.textContent = formatNumber(data.referringDomains);
+  kpiFollow.textContent = formatNumber(data.followBacklinks);
+  kpiFollowPercent.textContent = `(${formatPercent(followPercent)})`;
+  kpiNofollow.textContent = formatNumber(data.nofollowBacklinks);
+  kpiNofollowPercent.textContent = `(${formatPercent(nofollowPercent)})`;
+  kpiAvgDa.textContent = Math.round(data.avgDA);
+}
+
+function renderBacklinksCharts(data) {
+  if (!data || data.dataAvailable === false) return;
+  
+  const labels = getDailyLabels(data);
+  const backlinksSeriesData = data.dailyBacklinks.map((value) => Math.round(value));
+
+  // Canvas background plugin
+  const canvasBackgroundPlugin = {
+    id: 'canvasBackground',
+    beforeDraw(chart) {
+      const backlinksColors = getChartColors();
+      const {ctx} = chart;
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.fillStyle = backlinksColors.canvasBackground;
+      ctx.fillRect(0, 0, chart.width, chart.height);
+      ctx.restore();
+    }
+  };
+
+  // Backlinks growth chart
+  if (backlinksChart) backlinksChart.destroy();
+  const backlinksColors = getChartColors();
+  backlinksChart = new Chart(backlinksChartEl, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: t("backlinksTitle"),
+          data: backlinksSeriesData,
+          borderColor: "#2fd1a6",
+          backgroundColor: "rgba(47, 209, 166, 0.1)",
+          fill: true,
+          tension: 0.3,
+        },
+      ],
+    },
+    options: {
+      plugins: {
+        legend: { display: false },
+        canvasBackground: {},
+      },
+      scales: {
+        x: {
+          display: true,
+          grid: { color: backlinksColors.gridColor },
+          ticks: { color: backlinksColors.textColor },
+        },
+        y: {
+          title: { display: true, text: "Backlinks", color: backlinksColors.axisColor },
+          ticks: { color: backlinksColors.textColor },
+          grid: { color: backlinksColors.gridColor },
+        },
+      },
+    },
+    plugins: [canvasBackgroundPlugin],
+  });
+
+  // Follow vs Nofollow chart
+  if (followNofollowChart) followNofollowChart.destroy();
+  const followColors = getChartColors();
+  followNofollowChart = new Chart(followNofollowChartEl, {
+    type: "doughnut",
+    data: {
+      labels: [
+        currentLanguage === "ru" ? "Follow" : "Follow",
+        currentLanguage === "ru" ? "Nofollow" : "Nofollow",
+      ],
+      datasets: [
+        {
+          data: [
+            Math.round(data.followBacklinks),
+            Math.round(data.nofollowBacklinks),
+          ],
+          backgroundColor: ["#2251ff", "#ffb547"],
+        },
+      ],
+    },
+    options: {
+      plugins: {
+        legend: { 
+          position: "bottom",
+          labels: {
+            color: followColors.textColor,
+            padding: 15,
+            font: { size: 12 }
+          }
+        },
+        canvasBackground: {},
+      },
+      cutout: "65%",
+    },
+    plugins: [canvasBackgroundPlugin],
+  });
+}
+
+function renderBacklinksTables(data) {
+  if (!data || data.dataAvailable === false) return;
+
+  // Top referring domains
+  renderTable(
+    topDomainsTable,
+    [t("domainsHeader"), t("backlinksCountHeader"), t("daHeader")],
+    (data.topDomains || []).map((d) => [d[0], formatNumber(d[1]), String(d[2])])
+  );
+
+  // Anchor text distribution
+  renderTable(
+    anchorTextTable,
+    [t("anchorHeader"), t("countHeader")],
+    (data.anchorTextDistribution || []).map((a) => [a[0], formatNumber(a[1])])
+  );
+}
+
+function fetchBacklinksData(days, property) {
+  return fetch(
+    `/api/backlinks?days=${days}&property=${property || 'magnum'}`
+  )
+    .then((res) => {
+      if (!res.ok) throw new Error("API error");
+      return res.json();
+    })
+    .catch(() => {
+      // Fallback to mock data if API unavailable
+      console.log("Backlinks API unavailable, using mock data");
+      return generateMockBacklinksData(days);
+    });
+}
+
 function renderKpis(data) {
   const monthlyForecast = Math.round((data.totalUsers / data.days) * 30);
   const progress = monthlyForecast / GOAL_USERS;
@@ -438,6 +745,20 @@ function renderCharts(data) {
   const userSeries = data.dailyUsers.map((value) => Math.round(value));
 
   if (usersChart) usersChart.destroy();
+  const colors = getChartColors();
+  
+  const canvasBackgroundPlugin = {
+    id: 'canvasBackground',
+    beforeDraw(chart) {
+      const {ctx} = chart;
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.fillStyle = colors.canvasBackground;
+      ctx.fillRect(0, 0, chart.width, chart.height);
+      ctx.restore();
+    }
+  };
+  
   usersChart = new Chart(usersChartEl, {
     type: "line",
     data: {
@@ -446,8 +767,8 @@ function renderCharts(data) {
         {
           label: t("usersLabel"),
           data: userSeries,
-          borderColor: "#2251ff",
-          backgroundColor: "rgba(34, 81, 255, 0.1)",
+          borderColor: colors.lineColor,
+          backgroundColor: colors.backgroundColor,
           fill: true,
           tension: 0.3,
         },
@@ -456,6 +777,7 @@ function renderCharts(data) {
     options: {
       plugins: {
         legend: { display: false },
+        canvasBackground: {},
       },
       scales: {
         x: {
@@ -463,33 +785,35 @@ function renderCharts(data) {
           title: {
             display: true,
             text: "Date",
-            color: "#0f1a2a",
+            color: colors.axisColor,
             font: { size: 12, weight: 500 },
           },
           ticks: {
-            color: "#0f1a2a",
+            color: colors.textColor,
             maxRotation: 45,
             minRotation: 0,
           },
-          grid: { color: "#eef2f8" },
+          grid: { color: colors.gridColor },
         },
         y: {
           title: {
             display: true,
             text: "Number of Users",
-            color: "#0f1a2a",
+            color: colors.axisColor,
             font: { size: 12, weight: 500 },
           },
           ticks: {
-            color: "#0f1a2a",
+            color: colors.textColor,
           },
-          grid: { color: "#eef2f8" },
+          grid: { color: colors.gridColor },
         },
       },
     },
+    plugins: [canvasBackgroundPlugin],
   });
 
   if (channelsChart) channelsChart.destroy();
+  const colors2 = getChartColors();
   channelsChart = new Chart(channelsChartEl, {
     type: "doughnut",
     data: {
@@ -509,14 +833,24 @@ function renderCharts(data) {
     },
     options: {
       plugins: {
-        legend: { position: "bottom" },
+        legend: { 
+          position: "bottom",
+          labels: {
+            color: colors2.textColor,
+            padding: 15,
+            font: { size: 12 }
+          }
+        },
+        canvasBackground: {},
       },
       cutout: "65%",
     },
+    plugins: [canvasBackgroundPlugin],
   });
 
   const trendData = buildChannelsTrend(data);
   if (channelsTrendChart) channelsTrendChart.destroy();
+  const colors3 = getChartColors();
   channelsTrendChart = new Chart(channelsTrendChartEl, {
     type: "bar",
     data: {
@@ -525,13 +859,30 @@ function renderCharts(data) {
     },
     options: {
       plugins: {
-        legend: { position: "bottom" },
+        legend: {
+          position: "bottom",
+          labels: {
+            color: colors3.textColor,
+            padding: 15,
+            font: { size: 12 }
+          }
+        },
+        canvasBackground: {},
       },
       scales: {
-        x: { stacked: true, display: false },
-        y: { stacked: true, grid: { color: "#eef2f8" } },
+        x: { 
+          stacked: true, 
+          display: false,
+          ticks: { color: colors3.textColor }
+        },
+        y: { 
+          stacked: true, 
+          grid: { color: colors3.gridColor },
+          ticks: { color: colors3.textColor }
+        },
       },
     },
+    plugins: [canvasBackgroundPlugin],
   });
 
 
@@ -651,19 +1002,26 @@ function renderProblemPagesTable(pages) {
   });
 }
 
-async function fetchDashboardData(days, channel) {
+async function fetchDashboardData(days, channel, property) {
   const response = await fetch(
-    `/api/ga4?days=${days}&channel=${encodeURIComponent(channel)}`
+    `/api/ga4?days=${days}&channel=${encodeURIComponent(channel)}&property=${encodeURIComponent(property)}`
   );
+  const data = await response.json();
+  
   if (!response.ok) {
-    throw new Error("API error");
+    const error = new Error("API error");
+    error.status = response.status;
+    error.apiNotAvailable = data.apiNotAvailable || false;
+    error.responseData = data;
+    throw error;
   }
-  return response.json();
+  return data;
 }
 
 async function loadDashboard() {
   let days = Number(rangeSelect.value);
   const channel = channelSelect.value;
+  const property = propertySelect.value;
   
   // If rangeSelect value is a string like "quarter" or "half", handle it
   if (isNaN(days)) {
@@ -674,12 +1032,22 @@ async function loadDashboard() {
   }
   
   try {
-    const data = await fetchDashboardData(days, channel);
+    const [data, backlinksData] = await Promise.all([
+      fetchDashboardData(days, channel, property),
+      fetchBacklinksData(days, property),
+    ]);
+    
     lastData = data;
+    lastBacklinksData = backlinksData;
+    
     renderKpis(data);
     renderCharts(data);
     renderTables(data);
     renderInsights(data);
+    renderBacklinksKpis(backlinksData);
+    renderBacklinksCharts(backlinksData);
+    renderBacklinksTables(backlinksData);
+    
     const now = new Date();
     const timeLabel = now.toLocaleTimeString(
       currentLanguage === "ru" ? "ru-RU" : "en-US",
@@ -690,21 +1058,46 @@ async function loadDashboard() {
       `GA4 API • ${formatNumber(data.totalUsers)} • ${timeLabel}`
     );
   } catch (error) {
+    // Check if this is an "API not available" error
+    if (error.apiNotAvailable) {
+      const message = currentLanguage === "ru" 
+        ? "API недоступен для этого свойства"
+        : "API not available";
+      setDataStatus("unavailable", message);
+      
+      // Clear KPIs and show empty state
+      document.querySelectorAll('.kpi-value').forEach(el => el.textContent = '—');
+      document.querySelectorAll('.kpi-note').forEach(el => el.textContent = '');
+      
+      // Still show backlinks if available
+      if (lastBacklinksData) {
+        renderBacklinksKpis(lastBacklinksData);
+        renderBacklinksCharts(lastBacklinksData);
+        renderBacklinksTables(lastBacklinksData);
+      }
+      return;
+    }
+    
+    // Handle other API errors
     setDataStatus(
       "error",
       currentLanguage === "ru"
         ? "Ошибка API — проверьте сервер"
         : "API error — check server"
     );
-    if (!lastData) return;
+    if (!lastData || !lastBacklinksData) return;
     renderKpis(lastData);
     renderCharts(lastData);
     renderTables(lastData);
     renderInsights(lastData);
+    renderBacklinksKpis(lastBacklinksData);
+    renderBacklinksCharts(lastBacklinksData);
+    renderBacklinksTables(lastBacklinksData);
   }
 }
 
 let lastData = null;
+let lastBacklinksData = null;
 
 function handleLanguageChange() {
   currentLanguage = languageSelect.value;
@@ -719,6 +1112,39 @@ function handleLanguageChange() {
     renderTables(lastData);
     renderInsights(lastData);
   }
+  if (lastBacklinksData) {
+    renderBacklinksKpis(lastBacklinksData);
+    renderBacklinksCharts(lastBacklinksData);
+    renderBacklinksTables(lastBacklinksData);
+  }
+}
+
+function initTheme() {
+  const savedTheme = localStorage.getItem("dashboardTheme") || "light";
+  setTheme(savedTheme);
+}
+
+function setTheme(theme) {
+  if (theme === "dark") {
+    document.body.setAttribute("data-theme", "dark");
+    if (themeToggleBtn) themeToggleBtn.textContent = "☀️";
+    localStorage.setItem("dashboardTheme", "dark");
+  } else {
+    document.body.removeAttribute("data-theme");
+    if (themeToggleBtn) themeToggleBtn.textContent = "🌙";
+    localStorage.setItem("dashboardTheme", "light");
+  }
+  // Redraw charts with new theme colors
+  if (lastData) {
+    renderCharts(lastData);
+    renderBacklinksCharts(lastBacklinksData);
+  }
+}
+
+function toggleTheme() {
+  const currentTheme = localStorage.getItem("dashboardTheme") || "light";
+  const newTheme = currentTheme === "light" ? "dark" : "light";
+  setTheme(newTheme);
 }
 
 function getDailyLabels(data) {
@@ -792,7 +1218,10 @@ function setupTabs() {
 
 languageSelect.value = currentLanguage;
 applyTranslations();
+initTheme();
 languageSelect.addEventListener("change", handleLanguageChange);
+propertySelect.addEventListener("change", loadDashboard);
+themeToggleBtn.addEventListener("click", toggleTheme);
 refreshBtn.addEventListener("click", loadDashboard);
 rangeSelect.addEventListener("change", loadDashboard);
 channelSelect.addEventListener("change", loadDashboard);

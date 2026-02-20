@@ -10,7 +10,7 @@
   <body>
     <header class="topbar">
       <div class="brand">
-        <img src="logo.png" alt="Magnum Estate" class="logo-img" />
+        <div class="logo">M</div>
         <div>
           <div class="title" data-i18n="brandTitle">Magnum Estate</div>
           <div class="subtitle" data-i18n="brandSubtitle">
@@ -20,38 +20,24 @@
       </div>
       <div class="filters">
         <label class="filter">
-          <span data-i18n="propertyLabel">Сайт</span>
+          <span data-i18n="propertyLabel">Property</span>
           <select id="propertySelect">
-            <option value="overview">Overview</option>
-            <option value="magnumestate">Magnum Estate</option>
-            <option value="anoyavillas">Anoya Villas</option>
-            <option value="shishacool">Shisha Cool</option>
-            <option value="skystarsbali">Sky Stars</option>
-            <option value="theumalas">The Umalas</option>
+            <option value="magnum">Magnum Estate</option>
+            <option value="anoya">Anoya Villas</option>
+            <option value="shisha">Shisha Cool</option>
+            <option value="skystar">Sky Stars</option>
+            <option value="theumala">The Umalas</option>
           </select>
         </label>
         <label class="filter">
-          <span data-i18n="periodLabel">Період</span>
-          <select id="rangeSelect">
-            <option value="1" data-i18n="periodToday">Today</option>
-            <option value="2" data-i18n="periodYesterday">Yesterday</option>
-            <option value="7" data-i18n="period7">Последние 7 дней</option>
-            <option value="28" data-i18n="period28">Последние 28 дней</option>
-            <option value="31" data-i18n="period31">Последние 31 день</option>
-            <option value="90" data-i18n="period90" selected>Последние 90 дней</option>
-            <option value="quarter" data-i18n="periodQuarter">Последние 3 месяца</option>
-            <option value="half" data-i18n="periodHalf">Последние 6 месяцев</option>
+          <span data-i18n="periodLabel">Период</span>
+          <select id="rangeSelect">            <option value="1" data-i18n="periodToday">Today</option>
+            <option value="2" data-i18n="periodYesterday">Yesterday</option>            <option value="30" data-i18n="period30">Последние 30 дней</option>
+            <option value="90" data-i18n="period90" selected>
+              Последние 90 дней
+            </option>
             <option value="365" data-i18n="period365">Последние 12 месяцев</option>
-            <option value="custom" data-i18n="periodCustom">Выбрать даты</option>
           </select>
-        </label>
-        <label class="filter" id="dateFromLabel" style="display: none;">
-          <span>От:</span>
-          <input type="date" id="dateFrom" />
-        </label>
-        <label class="filter" id="dateToLabel" style="display: none;">
-          <span>До:</span>
-          <input type="date" id="dateTo" />
         </label>
         <label class="filter">
           <span data-i18n="channelLabel">Канал</span>
@@ -71,8 +57,8 @@
             <option value="en">English</option>
           </select>
         </label>
-        <button id="themeToggle" class="filter-btn" title="Toggle theme">
-          🌙
+        <button id="themeToggleBtn" class="theme-toggle" title="Toggle light/dark mode">
+          <span class="theme-icon">🌙</span>
         </button>
         <button id="refreshBtn" class="primary" data-i18n="refreshBtn">
           Обновить
@@ -98,6 +84,9 @@
         </button>
         <button class="tab-button" data-page="content" data-i18n="tabContent">
           Content
+        </button>
+        <button class="tab-button" data-page="backlinks" data-i18n="tabBacklinks">
+          Backlinks
         </button>
       </nav>
 
@@ -233,6 +222,97 @@
               <li>—</li>
             </ol>
             </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="page-section" data-page="backlinks">
+        <section class="kpi-grid">
+          <div class="kpi">
+            <div class="kpi-label" data-i18n="kpiBacklinksLabel">
+              Search Impressions
+            </div>
+            <div class="kpi-value" id="kpiBacklinks">—</div>
+            <div class="kpi-note" data-i18n="kpiBacklinksNote">
+              Times your site appeared
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label" data-i18n="kpiNewBacklinksLabel">
+              Total Clicks
+            </div>
+            <div class="kpi-value" id="kpiNewBacklinks">—</div>
+            <div class="kpi-note" data-i18n="kpiNewBacklinksNote">
+              From search results
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label" data-i18n="kpiDomainsLabel">
+              Unique Queries
+            </div>
+            <div class="kpi-value" id="kpiDomains">—</div>
+            <div class="kpi-note" data-i18n="kpiDomainsNote">
+              Search terms driving traffic
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label" data-i18n="kpiFollowLabel">
+              Clicked Impressions
+            </div>
+            <div class="kpi-value" id="kpiFollow">—</div>
+            <div class="kpi-note">
+              <span data-i18n="kpiFollowNote">Impressions with clicks</span>
+              <span id="kpiFollowPercent">—</span>
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label" data-i18n="kpiNofollowLabel">
+              Unclicked Impressions
+            </div>
+            <div class="kpi-value" id="kpiNofollow">—</div>
+            <div class="kpi-note">
+              <span data-i18n="kpiNofollowNote">No clicks from search</span>
+              <span id="kpiNofollowPercent">—</span>
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label" data-i18n="kpiAvgDaLabel">
+              Average Position
+            </div>
+            <div class="kpi-value" id="kpiAvgDa">—</div>
+            <div class="kpi-note" data-i18n="kpiAvgDaNote">
+              Search ranking
+            </div>
+          </div>
+        </section>
+
+        <section class="grid">
+          <div class="card span-12">
+            <div class="card-title" data-i18n="backlinksTitle">
+              Search Impressions Trend
+            </div>
+            <canvas id="backlinksChart" height="140"></canvas>
+          </div>
+
+          <div class="card span-6">
+            <div class="card-title" data-i18n="followNofollowTitle">
+              Clicks vs Impressions
+            </div>
+            <canvas id="followNofollowChart" height="180"></canvas>
+          </div>
+
+          <div class="card span-6">
+            <div class="card-title" data-i18n="topDomainsTitle">
+              Top Search Queries
+            </div>
+            <div id="topDomainsTable" class="table table-3"></div>
+          </div>
+
+          <div class="card span-12">
+            <div class="card-title" data-i18n="anchorTextTitle">
+              Распределение anchor текстов
+            </div>
+            <div id="anchorTextTable" class="table table-2"></div>
           </div>
         </section>
       </section>

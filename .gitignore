@@ -1,5 +1,8 @@
 .env
 GA4.env
+GA4.env.example
 service-account.json
+credentials/
 node_modules/
 .vercel
+server.log
