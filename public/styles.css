@@ -64,6 +64,14 @@ body {
   place-items: center;
 }
 
+.logo-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  object-fit: contain;
+  object-position: center;
+}
+
 .title {
   font-size: 18px;
   font-weight: 700;
